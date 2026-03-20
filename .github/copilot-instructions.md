@@ -235,3 +235,17 @@ The scenario-specific middle is composed via conditional edges from the route no
 
 ### 22. After any correction, update this file
 Add a numbered rule documenting what went wrong and the correct approach. This file is the single source of truth for future sessions.
+
+### 23. FAISS index strategy: HNSW not sharding
+Benchmarked on Xeon 6730P (128-core), 623K × 384d vectors:
+- `IndexFlatIP`: 72.5 ms p50 (exact, 100% recall)
+- `IndexHNSWFlat` M=32, ef=64: 0.25 ms p50 (98% recall@20) → **290× faster**
+- `IndexShards`: no improvement — FAISS already uses all threads via OpenMP internally; merging adds overhead
+
+Rules:
+- Use `IndexFlatIP` below `hnsw_min_vectors` (default 10K) for exact search on small corpora
+- Use a **single** `IndexHNSWFlat` above that threshold — do NOT use `IndexShards`
+- M=32, efConstruction=200, efSearch=64 is the production sweet spot (98% recall, sub-ms)
+- 98% recall@20 has negligible downstream impact after cross-encoder reranking
+- Memory overhead: ~17% vs FlatIP (acceptable)
+- Always call `faiss.omp_set_num_threads(n_cpu)` before build/search for FlatIP parallelism

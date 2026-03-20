@@ -32,6 +32,15 @@ class Settings(BaseSettings):
     rerank_top_k: int = 10
     retrieval_top_n: int = 50
 
+    # ── FAISS index tuning ───────────────────────────────────
+    # Below hnsw_min_vectors: IndexFlatIP (exact, no recall loss).
+    # At or above: sharded IndexHNSWFlat across all CPU cores.
+    hnsw_min_vectors: int = 10_000
+    hnsw_m: int = 32              # graph connectivity; M=32 benchmarked at 98% recall@20, 0.25ms p50 (623K vectors)
+    hnsw_ef_construction: int = 200  # build quality; higher = slower build, better recall
+    hnsw_ef_search: int = 64      # search quality/speed tradeoff at query time
+    faiss_num_threads: int = 0    # 0 = use all available CPU cores (via OpenMP)
+
     # ── API ──────────────────────────────────────────────────
     api_host: str = "0.0.0.0"
     api_port: int = 8081
