@@ -1,0 +1,75 @@
+# ──────────────────────────────────────────────────────────────
+# Agent Platform — Docker Compose
+# One Xeon + 8× Arc Pro B60 deployment
+# ──────────────────────────────────────────────────────────────
+version: "3.8"
+
+services:
+  # ── Main LLM (GPU — Llama-3.1-8B) ──────────────────────────
+  vllm-gpu:
+    image: intel/llm-scaler-vllm:0.14.0-b8
+    entrypoint: ["bash", "-c"]
+    command:
+      - |
+        source /opt/intel/oneapi/setvars.sh 2>/dev/null || true
+        vllm serve meta-llama/Llama-3.1-8B-Instruct \
+          --dtype=bfloat16 --port 8000 --block-size 64 \
+          --gpu-memory-util 0.9 --trust-remote-code \
+          --disable-log-requests --max-num-batched-tokens 8192 \
+          --max-model-len 131072 -tp=8 --enforce-eager \
+          --enable-prefix-caching \
+          --enable-auto-tool-choice --tool-call-parser llama3_json
+    network_mode: host
+    privileged: true
+    shm_size: "32g"
+    devices:
+      - /dev/dri:/dev/dri
+    volumes:
+      - ${HF_CACHE:-~/.cache/huggingface}:/root/.cache/huggingface
+    environment:
+      - VLLM_WORKER_MULTIPROC_METHOD=spawn
+      - http_proxy=${HTTP_PROXY:-}
+      - https_proxy=${HTTPS_PROXY:-}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+              count: 8
+
+  # ── SLM (CPU — Qwen2.5-3B) ────────────────────────────────
+  vllm-cpu:
+    image: intel/llm-scaler-vllm:0.14.0-b8
+    entrypoint: ["bash", "-c"]
+    command:
+      - |
+        source /opt/intel/oneapi/setvars.sh 2>/dev/null || true
+        vllm serve Qwen/Qwen2.5-3B-Instruct \
+          --dtype=bfloat16 --port 8001 \
+          --trust-remote-code --disable-log-requests \
+          --max-model-len 32768 -tp=1
+    network_mode: host
+    volumes:
+      - ${HF_CACHE:-~/.cache/huggingface}:/root/.cache/huggingface
+    environment:
+      - http_proxy=${HTTP_PROXY:-}
+      - https_proxy=${HTTPS_PROXY:-}
+
+  # ── Agent Platform (API + Frontend) ────────────────────────
+  agent-platform:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    network_mode: host
+    volumes:
+      - ../data:/app/data
+      - ../.env:/app/.env
+    environment:
+      - LLM_BASE_URL=http://localhost:8000/v1
+      - SECONDARY_LLM_BASE_URL=http://localhost:8001/v1
+    depends_on:
+      - vllm-gpu
+      - vllm-cpu
+    ports:
+      - "8081:8081"
+    restart: unless-stopped

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Platform — Intel Xeon + Arc Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ── Header ────────────────────────────────────────── -->
+    <header class="header">
+        <div class="header-left">
+            <h1 class="logo">Agent Platform</h1>
+            <span class="badge badge-blue">Intel Xeon 6 + Arc Pro B60</span>
+        </div>
+        <div class="header-right">
+            <span id="health-status" class="badge badge-gray">Checking...</span>
+        </div>
+    </header>
+
+    <!-- ── Main Layout ───────────────────────────────────── -->
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h3>Task History</h3>
+            <div id="task-list" class="task-list">
+                <p class="muted">No tasks yet</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Input Section -->
+            <section class="input-section">
+                <div class="input-row">
+                    <select id="scenario-select" class="scenario-select">
+                        <option value="it_ops">IT Ops / Service Desk</option>
+                        <option value="deep_research">Deep Research</option>
+                    </select>
+                    <textarea id="query-input" class="query-input"
+                        placeholder="Describe your task... e.g., 'Investigate the production database connection pool exhaustion on db-prod-01'"
+                        rows="3"></textarea>
+                    <button id="submit-btn" class="btn btn-primary">Submit Task</button>
+                </div>
+                <!-- Quick examples -->
+                <div class="examples">
+                    <span class="muted">Try:</span>
+                    <button class="btn btn-ghost example-btn"
+                        data-scenario="it_ops"
+                        data-query="Production database connection pool exhausted on db-prod-01. 503 errors across order-service, payment-service, inventory-service. 2000 users impacted.">
+                        DB Connection Pool
+                    </button>
+                    <button class="btn btn-ghost example-btn"
+                        data-scenario="it_ops"
+                        data-query="Kubernetes pods in CrashLoopBackOff for auth-service in staging. OOMKilled after v2.4.1 deployment.">
+                        K8s OOMKilled
+                    </button>
+                    <button class="btn btn-ghost example-btn"
+                        data-scenario="deep_research"
+                        data-query="Compare RAG pipeline architectures: dense retrieval vs hybrid retrieval vs graph-based approaches. What are the tradeoffs for enterprise knowledge systems?">
+                        RAG Architecture
+                    </button>
+                    <button class="btn btn-ghost example-btn"
+                        data-scenario="deep_research"
+                        data-query="Analyze heterogeneous computing approaches for AI inference. Compare GPU-only vs CPU+GPU configurations for enterprise agent workloads.">
+                        Het Computing
+                    </button>
+                </div>
+            </section>
+
+            <!-- Progress Section -->
+            <section id="progress-section" class="progress-section hidden">
+                <div class="progress-header">
+                    <h3 id="task-title">Processing...</h3>
+                    <span id="task-badge" class="badge badge-yellow">Running</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+                </div>
+
+                <!-- Steps log -->
+                <div id="steps-log" class="steps-log"></div>
+
+                <!-- Thinking panel -->
+                <details id="thinking-panel" class="thinking-panel">
+                    <summary class="thinking-summary">Thinking...</summary>
+                    <pre id="thinking-text" class="thinking-text"></pre>
+                </details>
+            </section>
+
+            <!-- Result Section -->
+            <section id="result-section" class="result-section hidden">
+                <div class="result-header">
+                    <h3>Result</h3>
+                    <div id="hw-badges" class="hw-badges"></div>
+                </div>
+                <div id="result-output" class="result-output"></div>
+
+                <!-- Citations -->
+                <div id="citations-section" class="citations-section hidden">
+                    <h4>Sources</h4>
+                    <ul id="citations-list" class="citations-list"></ul>
+                </div>
+
+                <!-- Metrics -->
+                <details class="metrics-panel">
+                    <summary>Execution Metrics</summary>
+                    <div id="metrics-content" class="metrics-content"></div>
+                </details>
+
+                <!-- Audit trail -->
+                <details class="audit-panel">
+                    <summary>Execution Trace</summary>
+                    <pre id="trace-content" class="trace-content"></pre>
+                </details>
+            </section>
+        </main>
+    </div>
+
+    <!-- ── Architecture Diagram Modal ────────────────────── -->
+    <div id="arch-modal" class="modal hidden">
+        <div class="modal-content">
+            <button class="modal-close" onclick="document.getElementById('arch-modal').classList.add('hidden')">&times;</button>
+            <h2>Platform Architecture</h2>
+            <div class="arch-diagram">
+                <pre>
+┌─────────────────────────────────────────────────────────────────┐
+│                        API Gateway (FastAPI)                     │
+│  Auth │ RBAC │ Rate Limit │ Tenant Isolation │ Audit Trail       │
+├─────────────────────────────────────────────────────────────────┤
+│                  LangGraph Orchestrator (Xeon)                   │
+│  ┌──────────┐  ┌───────────┐  ┌──────────────────────────────┐ │
+│  │ Classify  │→│   Route    │→│  Execute Path                 │ │
+│  │ (SLM)    │  │ Fast/Med/  │  │  ┌──────┐ ┌──────┐ ┌──────┐│ │
+│  └──────────┘  │ Deep       │  │  │ Fast │ │Single│ │Super-││ │
+│                └───────────┘  │  │ Path │ │Agent │ │visor ││ │
+│                               │  └──────┘ └──────┘ └──────┘│ │
+│                               └──────────────────────────────┘ │
+├────────────────────────┬────────────────────────────────────────┤
+│    Retrieval (Xeon)     │         LLM Inference                  │
+│  ┌──────┐ ┌──────┐    │  ┌─────────────────────────────────┐   │
+│  │Vector│ │BM25  │    │  │ vLLM (Intel Arc Pro B60 × 8)    │   │
+│  │FAISS │ │      │    │  │ Main: Llama-3.1-8B (GPU tp=8)   │   │
+│  └──┬───┘ └──┬───┘    │  │ SLM:  Qwen2.5-3B  (Xeon tp=1)  │   │
+│     └──┬─────┘        │  └─────────────────────────────────┘   │
+│   ┌────┴────┐         │                                         │
+│   │ RRF     │         │  ┌─────────────────────────────────┐   │
+│   │ Fusion  │         │  │ Security                         │   │
+│   └────┬────┘         │  │ PII │ Injection │ Approval Gate  │   │
+│   ┌────┴────┐         │  └─────────────────────────────────┘   │
+│   │Reranker │         │                                         │
+│   └────┬────┘         │  ┌─────────────────────────────────┐   │
+│   ┌────┴────┐         │  │ Connectors (Allowlisted)         │   │
+│   │ Packer  │         │  │ Tickets │ KB │ Logs │ Web Search  │   │
+│   └─────────┘         │  └─────────────────────────────────┘   │
+└────────────────────────┴────────────────────────────────────────┘
+                </pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

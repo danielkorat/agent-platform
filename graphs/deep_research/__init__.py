@@ -1,0 +1,1 @@
+"""Deep Research scenario — init."""
