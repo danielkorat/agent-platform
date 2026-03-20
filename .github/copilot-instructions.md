@@ -240,6 +240,9 @@ Add a numbered rule documenting what went wrong and the correct approach. This f
 `docs/index.html` is a single-file combined view of all docs (architecture.md, marketing.md, roi.md).
 **Rule**: Whenever any file under `docs/*.md` is added, removed, or edited, the corresponding section in `docs/index.html` must be updated in the same change. Never let the HTML fall out of sync with the source markdown files.
 
+### 25. docs/index.html: always use visual HTML/CSS/SVG diagrams — no ASCII art
+When rendering architecture diagrams, flowcharts, pipeline stages, hardware layouts, financial summaries, or any other visual in `docs/index.html`, always use proper HTML/CSS (styled divs, flex/grid layouts, cards) or inline SVG. **Never use `<pre>` blocks with box-drawing characters (┌ │ └ ─ etc.) or ASCII art for diagrams.** Code blocks (`<pre>`) are only acceptable for actual source code (Python, shell, etc.). Replace any ASCII art discovered during edits with an appropriate visual component.
+
 ### 24. FAISS index strategy: HNSW not sharding
 Benchmarked on Xeon 6730P (128-core), 623K × 384d vectors:
 - `IndexFlatIP`: 72.5 ms p50 (exact, 100% recall)
