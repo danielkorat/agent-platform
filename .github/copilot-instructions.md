@@ -236,7 +236,11 @@ The scenario-specific middle is composed via conditional edges from the route no
 ### 22. After any correction, update this file
 Add a numbered rule documenting what went wrong and the correct approach. This file is the single source of truth for future sessions.
 
-### 23. FAISS index strategy: HNSW not sharding
+### 23. Docs HTML file must stay in sync with docs/
+`docs/index.html` is a single-file combined view of all docs (architecture.md, marketing.md, roi.md).
+**Rule**: Whenever any file under `docs/*.md` is added, removed, or edited, the corresponding section in `docs/index.html` must be updated in the same change. Never let the HTML fall out of sync with the source markdown files.
+
+### 24. FAISS index strategy: HNSW not sharding
 Benchmarked on Xeon 6730P (128-core), 623K × 384d vectors:
 - `IndexFlatIP`: 72.5 ms p50 (exact, 100% recall)
 - `IndexHNSWFlat` M=32, ef=64: 0.25 ms p50 (98% recall@20) → **290× faster**

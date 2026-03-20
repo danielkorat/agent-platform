@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Platform Documentation</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --intel-blue:    #0068b5;
+      --intel-dark:    #00377b;
+      --intel-light:   #d6eaf8;
+      --accent:        #00c7fd;
+      --bg:            #f4f7fb;
+      --sidebar-bg:    #0b1e3d;
+      --sidebar-width: 260px;
+      --text:          #1a1a2e;
+      --muted:         #5a6a7a;
+      --border:        #dce5ef;
+      --code-bg:       #0d1117;
+      --code-text:     #e6edf3;
+      --table-head:    #eaf2fb;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ──────────────────────────────────────────────────── */
+    #sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--sidebar-width);
+      height: 100vh;
+      background: var(--sidebar-bg);
+      color: #c9d8f0;
+      overflow-y: auto;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      padding: 24px 20px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .sidebar-logo svg { flex-shrink: 0; }
+
+    .sidebar-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      line-height: 1.3;
+    }
+
+    .sidebar-subtitle {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: 2px;
+    }
+
+    nav { padding: 12px 0 24px; flex: 1; }
+
+    .nav-section {
+      padding: 16px 20px 4px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+
+    nav a {
+      display: block;
+      padding: 7px 20px 7px 28px;
+      font-size: 0.82rem;
+      color: #a8c0e0;
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+      line-height: 1.4;
+    }
+
+    nav a:hover, nav a.active {
+      color: #fff;
+      background: rgba(255,255,255,0.06);
+      border-left-color: var(--accent);
+    }
+
+    nav a.section-link {
+      padding-left: 20px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: #d0e4f7;
+    }
+
+    nav a.section-link:hover, nav a.section-link.active {
+      color: #fff;
+      border-left-color: var(--accent);
+    }
+
+    /* ── Main Content ─────────────────────────────────────────────── */
+    #content {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      max-width: 960px;
+      padding: 48px 56px 80px;
+    }
+
+    /* ── Section Dividers ─────────────────────────────────────────── */
+    .doc-section {
+      margin-bottom: 80px;
+    }
+
+    .doc-section-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--intel-blue);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+
+    /* ── Typography ───────────────────────────────────────────────── */
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--intel-dark);
+      line-height: 1.2;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 3px solid var(--intel-blue);
+    }
+
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--intel-dark);
+      margin: 40px 0 14px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--intel-blue);
+      margin: 28px 0 10px;
+    }
+
+    h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      margin: 18px 0 8px;
+    }
+
+    p {
+      line-height: 1.75;
+      margin-bottom: 14px;
+      color: #2c3e50;
+    }
+
+    strong { color: var(--intel-dark); }
+
+    ul, ol {
+      padding-left: 22px;
+      margin-bottom: 14px;
+    }
+
+    li {
+      line-height: 1.7;
+      margin-bottom: 4px;
+      color: #2c3e50;
+    }
+
+    a { color: var(--intel-blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 36px 0;
+    }
+
+    blockquote {
+      border-left: 4px solid var(--intel-blue);
+      background: var(--intel-light);
+      padding: 14px 20px;
+      margin: 20px 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    blockquote p { margin: 0; color: var(--intel-dark); font-style: italic; }
+
+    /* ── Code ─────────────────────────────────────────────────────── */
+    code {
+      font-family: "SF Mono", "Fira Code", Consolas, monospace;
+      font-size: 0.85em;
+      background: #eaf0f8;
+      color: #c0392b;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 20px;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      border: 1px solid #30363d;
+    }
+
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      font-size: inherit;
+    }
+
+    /* ── Tables ───────────────────────────────────────────────────── */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 16px 0 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    thead tr {
+      background: var(--table-head);
+    }
+
+    th {
+      padding: 11px 16px;
+      text-align: left;
+      font-weight: 700;
+      color: var(--intel-dark);
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: #f0f6fc; }
+
+    /* ── Key Metric Cards ─────────────────────────────────────────── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+
+    .kpi-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--intel-blue);
+      border-radius: 8px;
+      padding: 18px 20px;
+      text-align: center;
+    }
+
+    .kpi-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--intel-blue);
+      line-height: 1;
+    }
+
+    .kpi-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Scrollspy active ─────────────────────────────────────────── */
+    .anchor { display: block; position: relative; top: -80px; visibility: hidden; }
+
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="6" fill="#0068b5"/>
+        <path d="M7 10h4v12H7zm7-3h4v18h-4zm7 5h4v8h-4z" fill="white"/>
+      </svg>
+      <div>
+        <div class="sidebar-title">Agent Platform</div>
+        <div class="sidebar-subtitle">Documentation</div>
+      </div>
+    </div>
+  </div>
+
+  <nav>
+    <!-- Architecture -->
+    <div class="nav-section">Architecture</div>
+    <a class="section-link" href="#arch-overview">System Overview</a>
+    <a href="#arch-principles">Design Principles</a>
+    <a href="#arch-flow">Execution Flow</a>
+    <a href="#arch-hw">Hardware Mapping</a>
+    <a href="#arch-langgraph">LangGraph Design</a>
+    <a href="#arch-security">Security Architecture</a>
+    <a href="#arch-retrieval">Retrieval Architecture</a>
+    <a href="#arch-deployment">Deployment Architecture</a>
+
+    <!-- Marketing -->
+    <div class="nav-section">Marketing</div>
+    <a class="section-link" href="#mkt-positioning">Positioning</a>
+    <a href="#mkt-segments">Target Segments</a>
+    <a href="#mkt-messages">Key Messages</a>
+    <a href="#mkt-competitive">Competitive Positioning</a>
+    <a href="#mkt-demo">Demo Strategy</a>
+    <a href="#mkt-pricing">Pricing Guidance</a>
+    <a href="#mkt-objections">Objection Handling</a>
+
+    <!-- ROI -->
+    <div class="nav-section">ROI &amp; TCO</div>
+    <a class="section-link" href="#roi-summary">Executive Summary</a>
+    <a href="#roi-cost">Cost Model</a>
+    <a href="#roi-itops">IT Ops Value Model</a>
+    <a href="#roi-research">Research Value Model</a>
+    <a href="#roi-combined">Combined ROI</a>
+    <a href="#roi-hetero">Heterogeneous vs GPU-Only</a>
+    <a href="#roi-sensitivity">Sensitivity Analysis</a>
+    <a href="#roi-template">TCO Template</a>
+  </nav>
+</aside>
+
+<!-- ═══════════════════════ MAIN ═══════════════════════════ -->
+<main id="content">
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 1 — ARCHITECTURE
+  ══════════════════════════════════════════════════════════════ -->
+  <div class="doc-section">
+    <span class="doc-section-badge">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M1 3a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H3a2 2 0 01-2-2V3zm2-1a1 1 0 00-1 1v1h12V3a1 1 0 00-1-1H3zm11 3H2v7a1 1 0 001 1h10a1 1 0 001-1V5z"/></svg>
+      Architecture
+    </span>
+
+    <a class="anchor" id="arch-overview"></a>
+    <h1>Architecture</h1>
+
+    <a class="anchor" id="arch-overview-h2"></a>
+    <h2>System Overview</h2>
+    <p>The Agent Platform is a <strong>stateful graph-based orchestration system</strong> that routes enterprise queries through the cheapest sufficient execution path. It combines Intel Xeon CPU and Arc Pro B60 GPU to maximize throughput and minimize cost per query.</p>
+
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-value">3</div><div class="kpi-label">Execution Tiers</div></div>
+      <div class="kpi-card"><div class="kpi-value">2</div><div class="kpi-label">Scenarios</div></div>
+      <div class="kpi-card"><div class="kpi-value">2.27×</div><div class="kpi-label">Throughput Gain</div></div>
+      <div class="kpi-card"><div class="kpi-value">138:1</div><div class="kpi-label">IT Ops ROI</div></div>
+    </div>
+
+    <a class="anchor" id="arch-principles"></a>
+    <h2>Design Principles</h2>
+    <ol>
+      <li><strong>Classification-first</strong>: Every query is classified before execution. Simple queries never pay the cost of deep execution.</li>
+      <li><strong>Retrieval-augmented</strong>: No query executes without grounding in retrieved context. Hallucination is bounded by design.</li>
+      <li><strong>Observable by default</strong>: Every node, tool call, and LLM invocation emits timing and token metrics.</li>
+      <li><strong>Secure by default</strong>: Read-only by default. Write actions require explicit approval. All outputs are PII-scrubbed.</li>
+      <li><strong>Cost-aware</strong>: The router, packer, and reranker all minimize unnecessary token consumption.</li>
+    </ol>
+
+    <a class="anchor" id="arch-flow"></a>
+    <h2>Execution Flow</h2>
+
+<pre>
+Request → API Gateway → Ingest → Authenticate → Classify → Route
+                                                            │
+                    ┌───────────────────────────────────────┤
+                    │                 │                      │
+                   Fast            Medium                  Deep
+                    │                 │                      │
+              1-pass synth    Entity Extract          Write Brief
+                    │          Root Cause               Decompose
+                    │          Actions                 Sub-Agents
+                    │          Approval?                Reflect
+                    │          Closure                  Iterate?
+                    │                │                  Synthesize
+                    │                │                      │
+                    └────────────────┴──────────────────────┘
+                                     │
+                              Policy Check → Format → Audit → Response
+</pre>
+
+    <h3>Phase 1: Ingestion + Authentication (CPU)</h3>
+    <p>Every request enters through the FastAPI gateway and passes through:</p>
+    <ol>
+      <li><strong>Ingest</strong>: Normalize the request, assign task ID, initialize state</li>
+      <li><strong>Authenticate</strong>: Verify JWT or API key. In dev mode, a default analyst identity is injected</li>
+      <li><strong>Authorize</strong>: Check RBAC permissions for the requested scenario and action type</li>
+    </ol>
+
+    <h3>Phase 2: Classification + Routing (CPU / SLM)</h3>
+    <p>The router determines two things: <strong>scenario</strong> (it_ops or deep_research) and <strong>complexity</strong> (fast / medium / deep).</p>
+    <p><strong>Rule-based classification</strong> runs first:</p>
+    <ul>
+      <li>Deep signals: "compare", "analyze", "multi-factor", long queries (&gt;200 chars), many entities</li>
+      <li>Medium signals: "investigate", "root cause", "incident", action verbs</li>
+      <li>Fast signals: short queries (&lt;50 chars), "what is", "how to"</li>
+    </ul>
+    <p>If rule confidence ≥ 0.7, the LLM is skipped entirely. Otherwise, the SLM (Qwen 3B on CPU) classifies with a structured JSON response in ~0.2s.</p>
+    <p>This dual-gate approach means:</p>
+    <ul>
+      <li><strong>70–80% of queries</strong> are classified by rules alone (zero LLM cost)</li>
+      <li><strong>20–30% of edge cases</strong> use the SLM (0.2s, no GPU contention)</li>
+    </ul>
+
+    <h3>Phase 3: Retrieval (CPU)</h3>
+    <p>Retrieval runs on the Xeon CPU through a multi-stage pipeline:</p>
+    <ol>
+      <li><strong>Query expansion</strong>: Build retrieval variants from the original query + classification context</li>
+      <li><strong>Dense search (FAISS)</strong>: BGE-small-en-v1.5 embeddings → cosine similarity → top-N candidates</li>
+      <li><strong>Lexical search (BM25)</strong>: BM25Okapi keyword match → top-N candidates</li>
+      <li><strong>Reciprocal Rank Fusion</strong>: Merge and deduplicate across both result sets (k=60)</li>
+      <li><strong>Cross-encoder reranking</strong>: ms-marco-MiniLM-L-6-v2 scores each candidate against the query</li>
+      <li><strong>Context packing</strong>: Deduplicate (90% overlap threshold), enforce source diversity (max 3 per source), trim to token budget</li>
+    </ol>
+    <p>The retrieval pipeline typically returns 5–10 high-quality passages in &lt;0.5s.</p>
+
+    <h3>Phase 4: Scenario Execution (GPU + CPU)</h3>
+
+    <h4>IT Ops Path</h4>
+    <p><strong>Fast</strong>: Single-pass synthesis using top-ranked context and system prompt. No entity extraction, no multi-turn reasoning.</p>
+    <p><strong>Medium</strong> (full pipeline):</p>
+    <ol>
+      <li><strong>Extract entities</strong> (SLM/CPU): Parse ticket details, identify affected systems, severity, timestamps</li>
+      <li><strong>Root cause analysis</strong> (LLM/GPU): Analyze entities + context to hypothesize root cause with confidence score</li>
+      <li><strong>Recommended actions</strong> (LLM/GPU): Generate risk-aware remediation steps, flag high-risk actions for approval</li>
+      <li><strong>Human approval gate</strong>: If risk &gt; medium, pause and wait for explicit approval (auto-approved in demo mode)</li>
+      <li><strong>Closure note</strong> (LLM/GPU): Generate structured incident summary</li>
+    </ol>
+
+    <h4>Deep Research Path</h4>
+    <p><strong>Fast</strong>: Single-pass synthesis (same as IT Ops fast path but with research-tuned prompts).</p>
+    <p><strong>Medium</strong>: Research brief → direct final report (no decomposition).</p>
+    <p><strong>Deep</strong> (full pipeline):</p>
+    <ol>
+      <li><strong>Research brief</strong> (LLM/GPU): Synthesize initial findings from retrieval, identify key themes</li>
+      <li><strong>Supervisor decomposition</strong> (LLM/GPU): Break the query into 2–4 independent subtopics</li>
+      <li><strong>Sub-agent execution</strong> (sequential): Each subtask gets its own retrieval + synthesis pass</li>
+      <li><strong>Supervisor reflection</strong> (LLM/GPU): Assess coverage, identify gaps, decide: iterate or finalize</li>
+      <li><strong>Final report synthesis</strong> (LLM/GPU): Merge all sub-findings into a structured, cited decision memo</li>
+    </ol>
+    <p>The deep path has a circuit breaker: max 2 reflection iterations before forced finalization.</p>
+
+    <h3>Phase 5: Output + Audit (CPU)</h3>
+    <ol>
+      <li><strong>Policy check</strong>: Scan output for PII, blocked patterns, prompt injection residue. Redact as needed</li>
+      <li><strong>Format response</strong>: Build citation list, attach metrics, structure output</li>
+      <li><strong>Audit persistence</strong>: Log full execution trace to SQLite (task, path, timing, tokens, approval decision)</li>
+    </ol>
+
+    <a class="anchor" id="arch-hw"></a>
+    <h2>Hardware Mapping</h2>
+
+<pre>
+┌─────────────────────────────────────────────────────────────────┐
+│                 Intel Xeon 6 (CPU)                              │
+│                                                                  │
+│  Control Plane:  API, routing, auth, RBAC, audit               │
+│  Classification: Qwen 3B SLM via vLLM (port 8001)             │
+│  Retrieval:      BGE-small embeddings, FAISS search, BM25      │
+│  Reranking:      Cross-encoder (22M params)                    │
+│  Post-process:   PII redaction, context packing, formatting    │
+│                                                                  │
+│  Why CPU: I/O-bound, small models, deterministic processing    │
+│  Typical load: 1-5% of pipeline time for simple queries        │
+│               60%+ for complex queries with entity extraction   │
+├─────────────────────────────────────────────────────────────────┤
+│                 Intel Arc Pro B60 × 8 (GPU)                     │
+│                                                                  │
+│  Reasoning:      Root cause analysis (Llama-3.1-8B-Instruct)  │
+│  Synthesis:      Report generation, closure notes              │
+│  Multi-hop:      Sub-agent research, supervisor reflection     │
+│                                                                  │
+│  Serving:        vLLM with tp=8, prefix caching, eager mode   │
+│  Performance:    ~41 tok/s output, 131K max context            │
+│                                                                  │
+│  Why GPU: Autoregressive generation is memory-bandwidth bound  │
+│           8 GPUs provide enough KV-cache for large contexts    │
+└─────────────────────────────────────────────────────────────────┘
+</pre>
+
+    <h3>Pipeline Staging Effect at Scale</h3>
+    <p>At concurrency &gt; 8, the CPU classification stage creates a <strong>natural rate-limiting buffer</strong>:</p>
+
+<pre>
+Requests:  R1  R2  R3  R4  R5  R6  R7  R8  R9  R10 ...
+
+GPU-only:  All 10 hit GPU simultaneously
+           → KV-cache saturated
+           → Throughput drops (measured: -25% at c=32)
+
+Heterogeneous:
+           CPU classifies R1-R10 in staggered 0.2s slots
+           GPU receives requests in waves of 2-3
+           → KV-cache stays in optimal batching regime
+           → Throughput keeps scaling (measured: +81% from c=16 to c=32)
+</pre>
+    <p>This is not speculation. It is measured and reproducible.</p>
+
+    <a class="anchor" id="arch-langgraph"></a>
+    <h2>LangGraph Design</h2>
+
+    <h3>State Schema</h3>
+<pre>
+class AgentState(TypedDict, total=False):
+    # Identity
+    task_id: str
+    scenario: str
+    tenant_id: str
+
+    # Auth
+    user_id: str
+    user_role: str
+
+    # Classification
+    query: str
+    complexity: str              # fast | medium | deep
+    risk_level: str              # low | medium | high | critical
+    execution_path: str          # e.g., "it_ops_single_agent"
+
+    # Retrieval
+    retrieval_plan: dict
+    retrieved_chunks: list[dict]
+    packed_context: str
+
+    # LLM message accumulation
+    messages: Annotated[list[BaseMessage], add_messages]
+
+    # Scenario-specific fields...
+    # Observability fields...
+</pre>
+
+    <h3>Graph Construction Pattern</h3>
+    <p>Both scenarios share a common prefix (ingest → auth → classify → retrieve → route) and suffix (policy → format → audit). The scenario-specific middle section is composed as a subgraph:</p>
+<pre>
+# Shared prefix
+graph.add_node("ingest", ingest_request)
+graph.add_node("authenticate", authenticate_and_authorize)
+graph.add_node("classify", classify_scenario_and_complexity)
+graph.add_node("retrieve", retrieve_candidates)
+graph.add_node("route", route_execution_path)
+
+# Scenario-specific (conditional based on route output)
+graph.add_conditional_edges("route", scenario_router, {
+    "it_ops_fast":         "it_fast_synth",
+    "it_ops_single_agent": "it_extract",
+    "research_fast":       "research_fast_synth",
+    "research_medium":     "research_brief",
+    "research_deep":       "research_brief",
+})
+</pre>
+
+    <h3>Bounded Execution</h3>
+    <p>Every loop and agent has explicit limits:</p>
+    <ul>
+      <li><strong>Agent node loops</strong>: max 15 iterations</li>
+      <li><strong>Supervisor rounds</strong>: max 5 reflection cycles</li>
+      <li><strong>Sub-agents per task</strong>: max 4 (configurable)</li>
+      <li><strong>Context tokens per retrieval</strong>: max 8,192 tokens</li>
+    </ul>
+    <p>These prevent runaway cost and latency.</p>
+
+    <a class="anchor" id="arch-security"></a>
+    <h2>Security Architecture</h2>
+
+<pre>
+Request
+  │
+  ▼
+┌──────────────────────┐
+│  JWT / API Key Auth   │ ← Reject unauthenticated
+├──────────────────────┤
+│  RBAC Check           │ ← Reject unauthorized
+├──────────────────────┤
+│  Input Sanitization   │ ← Log prompt injection attempts
+├──────────────────────┤
+│  Execution (graph)    │
+├──────────────────────┤
+│  PII Redaction        │ ← Scrub before output
+├──────────────────────┤
+│  Output Policy Check  │ ← Block dangerous patterns
+├──────────────────────┤
+│  Audit Log            │ ← Full trace persisted
+└──────────────────────┘
+</pre>
+
+    <p>Key design decisions:</p>
+    <ul>
+      <li><strong>All connectors are read-only by default.</strong> Write actions require both RBAC and approval.</li>
+      <li><strong>PII redaction runs on output, not input</strong> — the model sees real data for better reasoning, but the user never sees PII in the response.</li>
+      <li><strong>Prompt injection detection is heuristic</strong> — it flags but does not block retrieved content, since false positives would degrade retrieval quality.</li>
+      <li><strong>Approval gate is async</strong> — the graph pauses and waits for an explicit decision via the API. In demo mode, it auto-approves.</li>
+    </ul>
+
+    <a class="anchor" id="arch-retrieval"></a>
+    <h2>Retrieval Architecture</h2>
+
+    <h3>Hybrid Search Design</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Stage</th><th>Purpose</th><th>Typical Latency</th></tr></thead>
+        <tbody>
+          <tr><td>Embedding</td><td>Convert query to 384-dim vector</td><td>5–10 ms</td></tr>
+          <tr><td>FAISS search</td><td>Dense similarity, top-50</td><td>1–5 ms</td></tr>
+          <tr><td>BM25 search</td><td>Keyword matching, top-50</td><td>5–10 ms</td></tr>
+          <tr><td>RRF fusion</td><td>Merge + deduplicate</td><td>&lt;1 ms</td></tr>
+          <tr><td>Cross-encoder</td><td>Score top-50 against query</td><td>50–200 ms</td></tr>
+          <tr><td>Context packing</td><td>Dedup, diversity, budget</td><td>&lt;1 ms</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>Why hybrid?</strong> Dense search excels at semantic similarity but misses exact keyword matches. BM25 catches exact terms but fails on paraphrase. RRF fusion gives the best of both.</p>
+    <p><strong>Why reranking?</strong> FAISS top-50 typically has 60–80% irrelevant results. The cross-encoder prunes these, reducing token waste in downstream LLM calls by 60–80%.</p>
+
+    <h3>Indexing</h3>
+    <ul>
+      <li><strong>Chunking</strong>: 512-token chunks with 64-token overlap (configurable)</li>
+      <li><strong>Embeddings</strong>: BGE-small-en-v1.5 (384-dim, 33M params, runs on CPU in &lt;50ms/chunk)</li>
+      <li><strong>Index</strong>: FAISS IndexFlatIP (exact cosine similarity after L2 normalization)</li>
+      <li><strong>Metadata</strong>: Every chunk carries <code>chunk_id</code>, <code>source_id</code>, <code>title</code>, <code>text</code>, <code>tenant_id</code></li>
+    </ul>
+
+    <a class="anchor" id="arch-deployment"></a>
+    <h2>Deployment Architecture</h2>
+
+<pre>
+┌─────────────────────────────────────────┐
+│            Single Server                 │
+│                                          │
+│  ┌──────────────────────────────────┐   │
+│  │  Agent Platform (port 8081)      │   │
+│  │  Python process                   │   │
+│  └──────────┬──────────┬────────────┘   │
+│             │          │                 │
+│  ┌──────────┴─┐  ┌────┴──────────┐     │
+│  │ vLLM GPU   │  │ vLLM CPU      │     │
+│  │ port 8000  │  │ port 8001     │     │
+│  └────────────┘  └───────────────┘     │
+└─────────────────────────────────────────┘
+</pre>
+
+  </div><!-- /doc-section architecture -->
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 2 — MARKETING
+  ══════════════════════════════════════════════════════════════ -->
+  <div class="doc-section">
+    <span class="doc-section-badge">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M11 2a2 2 0 012 2v4a2 2 0 01-2 2H9l-1 3H7l-1-3H4a2 2 0 01-2-2V4a2 2 0 012-2h7z"/></svg>
+      Marketing
+    </span>
+
+    <a class="anchor" id="mkt-positioning"></a>
+    <h1>Marketing Strategy</h1>
+
+    <h2>Positioning Statement</h2>
+    <blockquote>
+      <p>"Enterprise AI that works with your infrastructure, not against it."</p>
+    </blockquote>
+    <p>The Agent Platform positions Intel Xeon + Arc Pro B60 as the <strong>complete on-premises AI inference stack</strong> — not just model serving, but full enterprise workflow automation with security, observability, and cost control built in.</p>
+
+    <a class="anchor" id="mkt-segments"></a>
+    <h2>1. Target Segments</h2>
+
+    <h3>Primary: Large Enterprise IT Operations</h3>
+    <p><strong>Profile</strong>: 500+ employees, 1,000+ IT incidents/month, existing Xeon infrastructure, compliance requirements that discourage cloud AI.</p>
+    <p><strong>Pain points</strong>:</p>
+    <ul>
+      <li>Ticket triage is manual, slow, and inconsistent</li>
+      <li>Runbooks exist but aren't used (too many, hard to search)</li>
+      <li>MTTR is measured in hours, not minutes</li>
+      <li>On-call engineers burn out from repetitive L1 work</li>
+    </ul>
+    <blockquote><p>"Transform your incident response from hours to seconds. Same hardware. Same data center. Full control."</p></blockquote>
+
+    <h3>Secondary: Research &amp; Strategy Teams</h3>
+    <p><strong>Profile</strong>: Financial services, consulting, legal, intelligence — teams that produce written analysis from multiple sources under time pressure.</p>
+    <p><strong>Pain points</strong>:</p>
+    <ul>
+      <li>Research memos take days when the decision needs to happen today</li>
+      <li>Citation tracking is manual and error-prone</li>
+      <li>Quality varies by analyst experience and available time</li>
+      <li>No systematic coverage assessment</li>
+    </ul>
+    <blockquote><p>"4–8× faster research with full citation. Let your analysts do analysis, not information retrieval."</p></blockquote>
+
+    <h3>Tertiary: Intel Partners &amp; Systems Integrators</h3>
+    <p><strong>Profile</strong>: OEMs, VARs, and consulting firms selling Intel-based solutions to enterprise clients.</p>
+    <blockquote><p>"A turnkey enterprise AI demo that sells Intel hardware. 15-minute setup. Real metrics. Customer PoC in a week."</p></blockquote>
+
+    <a class="anchor" id="mkt-messages"></a>
+    <h2>2. Key Messages</h2>
+
+    <h3>Message 1: On-Premises and Secure</h3>
+    <blockquote><p>"Your data never leaves your data center. No API keys to cloud providers. No per-token bills. No data sovereignty concerns."</p></blockquote>
+
+    <h3>Message 2: 138:1 ROI</h3>
+    <blockquote><p>"For every dollar spent on hardware, the platform saves $138 in engineer time. Monthly."</p></blockquote>
+
+    <h3>Message 3: Observability Built In</h3>
+    <blockquote><p>"Every query shows its execution path, retrieved sources, model used, latency breakdown, and cost. No black boxes."</p></blockquote>
+
+    <h3>Message 4: Cost-Controlled Execution</h3>
+    <blockquote><p>"Simple questions cost simple resources. Three execution tiers route every query to the cheapest sufficient path."</p></blockquote>
+
+    <h3>Message 5: Heterogeneous Advantage</h3>
+    <blockquote><p>"2.27× more throughput at 31% lower cost per query. Same hardware, smarter scheduling."</p></blockquote>
+
+    <a class="anchor" id="mkt-competitive"></a>
+    <h2>3. Competitive Positioning</h2>
+
+    <h3>vs. Cloud AI APIs (OpenAI, Anthropic, Google)</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Dimension</th><th>Cloud AI</th><th>Agent Platform</th></tr></thead>
+        <tbody>
+          <tr><td>Data location</td><td>Their servers</td><td>Your data center</td></tr>
+          <tr><td>Cost model</td><td>Per-token variable</td><td>Fixed hardware cost</td></tr>
+          <tr><td>Latency</td><td>Network RTT + queue</td><td>Local, predictable</td></tr>
+          <tr><td>Customization</td><td>System prompts only</td><td>Full pipeline control</td></tr>
+          <tr><td>Observability</td><td>Limited (usage dashboard)</td><td>Full node-level tracing</td></tr>
+          <tr><td>Compliance</td><td>SOC 2, varies</td><td>You control everything</td></tr>
+          <tr><td>Air-gap capable</td><td>No</td><td>Yes</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>vs. GPU-Only On-Premises (NVIDIA-centric)</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Dimension</th><th>NVIDIA GPU-Only</th><th>Agent Platform (Xeon + Arc Pro)</th></tr></thead>
+        <tbody>
+          <tr><td>Hardware cost</td><td>H100: $25,000+ per GPU</td><td>Arc Pro B60: $900 per GPU</td></tr>
+          <tr><td>Throughput @ c=32</td><td>Higher per GPU</td><td>2.27× with heterogeneous</td></tr>
+          <tr><td>KV-cache behavior</td><td>Same saturation issue</td><td>CPU staging prevents saturation</td></tr>
+          <tr><td>Existing infra leverage</td><td>Requires new GPU servers</td><td>Extends existing Xeon servers</td></tr>
+          <tr><td>TCO at scale</td><td>Lower per-GPU but 28× upfront</td><td>Lower entry, better per-query at scale</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>vs. Open-Source RAG Frameworks (LlamaIndex, Haystack)</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Dimension</th><th>RAG Frameworks</th><th>Agent Platform</th></tr></thead>
+        <tbody>
+          <tr><td>Scope</td><td>Retrieval pipeline</td><td>Full enterprise platform</td></tr>
+          <tr><td>Security</td><td>DIY</td><td>Built-in auth, RBAC, PII, approvals</td></tr>
+          <tr><td>Routing</td><td>Manual</td><td>Automatic 3-tier classification</td></tr>
+          <tr><td>Observability</td><td>Callbacks (DIY)</td><td>Full metrics dashboard</td></tr>
+          <tr><td>Deployment</td><td>Framework, not product</td><td>Docker Compose ready</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <a class="anchor" id="mkt-demo"></a>
+    <h2>4. Demo Strategy</h2>
+
+    <h3>15-Minute Customer Demo</h3>
+    <ol>
+      <li><strong>Architecture overview</strong> (2 min) — Show the platform diagram. Key message: "One platform, two scenarios, three execution tiers"</li>
+      <li><strong>IT Ops demo</strong> (5 min) — Submit: "Production DB connection pool exhausted on db-prod-01." Walk through: classification → runbook retrieval → root cause → actions → approval gate</li>
+      <li><strong>Deep Research demo</strong> (5 min) — Submit: "Compare dense retrieval, lexical search, and hybrid approaches for enterprise RAG." Highlight: sub-topic breakdown, source diversity, cited conclusions</li>
+      <li><strong>Metrics walkthrough</strong> (2 min) — Show per-query metrics: latency breakdown, token cost, hardware utilization</li>
+      <li><strong>TCO and next steps</strong> (1 min) — Present ROI numbers for customer's incident volume</li>
+    </ol>
+
+    <h3>PoC Playbook (Post-Demo)</h3>
+    <ol>
+      <li><strong>Week 1</strong>: Install platform on customer hardware. Ingest 100–500 KB articles</li>
+      <li><strong>Week 2</strong>: Connect to customer's ticket system (read-only connector)</li>
+      <li><strong>Week 3</strong>: Run 50–100 historical incidents through the platform. Measure time savings</li>
+      <li><strong>Week 4</strong>: Present results with customer-specific ROI numbers</li>
+    </ol>
+
+    <a class="anchor" id="mkt-content"></a>
+    <h2>5. Content Strategy</h2>
+
+    <h3>Technical Blog Series</h3>
+    <ol>
+      <li>"Building an Enterprise Agent Platform with LangGraph and vLLM"</li>
+      <li>"Why Hybrid Retrieval Outperforms Dense-Only for Enterprise RAG"</li>
+      <li>"The Pipeline Staging Effect: How CPU Classification Scales GPU Throughput 2.27×"</li>
+      <li>"Security Patterns for Production LLM Applications"</li>
+      <li>"Three Execution Tiers: Stop Overspending on Simple Queries"</li>
+    </ol>
+
+    <a class="anchor" id="mkt-pricing"></a>
+    <h2>6. Pricing Guidance (for Intel Sales)</h2>
+    <p>The Agent Platform is open-source (Apache 2.0). Revenue comes from hardware sales:</p>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Configuration</th><th>Hardware</th><th>Estimated Street Price</th><th>Target Workload</th></tr></thead>
+        <tbody>
+          <tr><td>Starter</td><td>1× Xeon + 4× Arc Pro B60</td><td>~$8,000</td><td>500 incidents/month</td></tr>
+          <tr><td>Standard</td><td>1× Xeon + 8× Arc Pro B60</td><td>~$12,000</td><td>2,000 incidents/month</td></tr>
+          <tr><td>Enterprise</td><td>2× Xeon + 16× Arc Pro B60</td><td>~$22,000</td><td>10,000 incidents/month</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <a class="anchor" id="mkt-objections"></a>
+    <h2>7. Objection Handling</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Objection</th><th>Response</th></tr></thead>
+        <tbody>
+          <tr><td>"We'll just use OpenAI / Claude"</td><td>"For prototyping, sure. For production with PII, compliance, and cost control? You need on-prem."</td></tr>
+          <tr><td>"Arc Pro B60 is too small for real work"</td><td>"8B-param models at 41 tok/s. 8 GPUs with 192GB total HBM. Benchmarked on 640 production queries."</td></tr>
+          <tr><td>"Our team doesn't have AI expertise"</td><td>"Docker Compose deployment, pre-built demos, documented architecture. Two engineer-days to production."</td></tr>
+          <tr><td>"What about model quality?"</td><td>"Llama 3.1 8B scored 4.1/5 on Claude-judged quality. Swap to 70B if you need more."</td></tr>
+          <tr><td>"We already have NVIDIA GPUs"</td><td>"This is about the Xeon you already have. The CPU staging effect works with any GPU — it's a software architecture win."</td></tr>
+          <tr><td>"Open source means no support"</td><td>"Intel provides reference design support. The platform is documented and tested. Your team owns it."</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div><!-- /doc-section marketing -->
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 3 — ROI
+  ══════════════════════════════════════════════════════════════ -->
+  <div class="doc-section">
+    <span class="doc-section-badge">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2.5A.5.5 0 012.5 2h11a.5.5 0 010 1h-11A.5.5 0 012 2.5zm0 4A.5.5 0 012.5 6h11a.5.5 0 010 1h-11A.5.5 0 012 6.5zm0 4a.5.5 0 01.5-.5h6a.5.5 0 010 1h-6a.5.5 0 01-.5-.5z"/></svg>
+      ROI &amp; TCO
+    </span>
+
+    <a class="anchor" id="roi-summary"></a>
+    <h1>ROI Analysis &amp; Total Cost of Ownership</h1>
+
+    <h2>Executive Summary</h2>
+    <p>The Agent Platform produces measurable ROI across two enterprise scenarios: <strong>IT Operations</strong> and <strong>Deep Research</strong>. This document provides a generic ROI framework grounded in industry benchmarks and first-principles cost analysis.</p>
+    <blockquote>
+      <p><strong>Key finding</strong>: The platform achieves <strong>138:1 ROI</strong> on IT Ops alone when deployed on Intel Xeon + Arc Pro B60, primarily through engineer time savings and escalation reduction.</p>
+    </blockquote>
+
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-value">$512</div><div class="kpi-label">Total Monthly Cost</div></div>
+      <div class="kpi-card"><div class="kpi-value">138:1</div><div class="kpi-label">IT Ops ROI</div></div>
+      <div class="kpi-card"><div class="kpi-value">&lt;1 mo</div><div class="kpi-label">Payback Period</div></div>
+      <div class="kpi-card"><div class="kpi-value">82</div><div class="kpi-label">Break-even Incidents/mo</div></div>
+    </div>
+
+    <a class="anchor" id="roi-cost"></a>
+    <h2>1. Cost Model</h2>
+
+    <h3>Infrastructure Costs (Monthly)</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Component</th><th>Unit Cost</th><th>Quantity</th><th>Amortized Monthly</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Intel Arc Pro B60 GPU</td><td>$900 (street)</td><td>8</td><td>$200</td><td>36-month amortization</td></tr>
+          <tr><td>Intel Xeon 6 server</td><td>$0 incremental</td><td>1</td><td>$0</td><td>Already deployed in enterprise</td></tr>
+          <tr><td>Power consumption</td><td>$0.10/kWh</td><td>400W × 730h</td><td>$29</td><td>GPU + CPU combined</td></tr>
+          <tr><td>Rack space</td><td>$0 incremental</td><td>—</td><td>$0</td><td>Shared with existing infra</td></tr>
+          <tr><td>Software licenses</td><td>$0</td><td>—</td><td>$0</td><td>All open-source stack</td></tr>
+          <tr><td><strong>Total monthly infra</strong></td><td></td><td></td><td><strong>$229</strong></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Operational Costs (Monthly)</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Component</th><th>Cost</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Setup (one-time, amortized)</td><td>$83</td><td>2 engineer-days × $1,500/day / 36 months</td></tr>
+          <tr><td>Maintenance</td><td>$150</td><td>2 hours/month × $75/hr</td></tr>
+          <tr><td>Model updates</td><td>$50</td><td>Quarterly model refresh</td></tr>
+          <tr><td><strong>Total monthly ops</strong></td><td><strong>$283</strong></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+<pre>
+Infrastructure:  $229
+Operations:      $283
+─────────────────────
+Total:           $512/month
+</pre>
+
+    <a class="anchor" id="roi-itops"></a>
+    <h2>2. IT Ops Value Model</h2>
+
+    <h3>Baseline Assumptions</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Parameter</th><th>Conservative</th><th>Moderate</th><th>Aggressive</th></tr></thead>
+        <tbody>
+          <tr><td>Incidents per month</td><td>500</td><td>1,000</td><td>2,000</td></tr>
+          <tr><td>Avg engineer time per incident (before)</td><td>15 min</td><td>20 min</td><td>30 min</td></tr>
+          <tr><td>Avg engineer time per incident (after)</td><td>5 min</td><td>5 min</td><td>5 min</td></tr>
+          <tr><td>Escalation rate (before)</td><td>40%</td><td>50%</td><td>60%</td></tr>
+          <tr><td>Escalation rate (after)</td><td>20%</td><td>20%</td><td>20%</td></tr>
+          <tr><td>Escalation cost premium</td><td>$50/ticket</td><td>$50/ticket</td><td>$50/ticket</td></tr>
+          <tr><td>Fully-loaded engineer cost</td><td>$75/hr</td><td>$75/hr</td><td>$75/hr</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+<pre>
+Before:  500 incidents × 15 min = 7,500 min = 125 hours
+After:   500 incidents × 5 min  = 2,500 min =  42 hours
+Saved:   83 hours × $75/hr = $6,225/month
+
+Before:  500 × 40% = 200 escalations × $50 = $10,000/month
+After:   500 × 20% = 100 escalations × $50 =  $5,000/month
+Saved:   $5,000/month
+</pre>
+
+    <h3>IT Ops ROI Summary</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Scenario</th><th>Time Savings</th><th>Escalation Savings</th><th>Total Savings</th><th>ROI</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Conservative</strong> (500/mo)</td><td>$6,225</td><td>$5,000</td><td>$11,225</td><td><strong>21:1</strong></td></tr>
+          <tr><td><strong>Moderate</strong> (1,000/mo)</td><td>$18,750</td><td>$25,000</td><td>$43,750</td><td><strong>84:1</strong></td></tr>
+          <tr><td><strong>Aggressive</strong> (2,000/mo)</td><td>$62,500</td><td>$60,000</td><td>$122,500</td><td><strong>238:1</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <a class="anchor" id="roi-research"></a>
+    <h2>3. Deep Research Value Model</h2>
+
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Parameter</th><th>Conservative</th><th>Moderate</th><th>Aggressive</th></tr></thead>
+        <tbody>
+          <tr><td>Research tasks per month</td><td>20</td><td>50</td><td>100</td></tr>
+          <tr><td>Avg analyst time per task (before)</td><td>4 hours</td><td>6 hours</td><td>8 hours</td></tr>
+          <tr><td>Avg analyst time per task (after)</td><td>1 hour</td><td>1 hour</td><td>1 hour</td></tr>
+          <tr><td>Fully-loaded analyst cost</td><td>$100/hr</td><td>$100/hr</td><td>$100/hr</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Research ROI Summary</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Scenario</th><th>Hours Saved</th><th>Cost Saved</th><th>ROI</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Conservative</strong> (20/mo)</td><td>60 hrs</td><td>$6,000</td><td><strong>11:1</strong></td></tr>
+          <tr><td><strong>Moderate</strong> (50/mo)</td><td>250 hrs</td><td>$25,000</td><td><strong>48:1</strong></td></tr>
+          <tr><td><strong>Aggressive</strong> (100/mo)</td><td>700 hrs</td><td>$70,000</td><td><strong>136:1</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <a class="anchor" id="roi-combined"></a>
+    <h2>4. Combined ROI</h2>
+    <p>Using the moderate scenario for both IT Ops and Research:</p>
+
+<pre>
+IT Ops savings:      $43,750/month
+Research savings:    $25,000/month
+Total savings:       $68,750/month
+Total cost:             $512/month
+─────────────────────────────────
+Net value:           $68,238/month
+ROI:                     133:1
+Annual net value:    $818,856
+Payback period:      &lt; 1 month
+</pre>
+
+    <a class="anchor" id="roi-hetero"></a>
+    <h2>5. Heterogeneous vs. Homogeneous TCO</h2>
+
+    <h3>Throughput Comparison at Scale</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Configuration</th><th>Throughput @ c=1</th><th>Throughput @ c=32</th><th>Scaling Factor</th></tr></thead>
+        <tbody>
+          <tr><td>GPU-only</td><td>3.55 q/min</td><td>21.57 q/min</td><td>6.1×</td></tr>
+          <tr><td>Heterogeneous</td><td>3.71 q/min</td><td>48.97 q/min</td><td>13.2×</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Cost Per Query</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Configuration</th><th>Throughput @ c=32</th><th>HW Cost/Hour</th><th>Cost per Query</th></tr></thead>
+        <tbody>
+          <tr><td>GPU-only</td><td>21.57 q/min</td><td>$0.0523</td><td>$0.0000404</td></tr>
+          <tr><td>Heterogeneous</td><td>48.97 q/min</td><td>$0.0823</td><td>$0.0000280</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Heterogeneous costs 57% more per hour (CPU + GPU vs GPU alone) but delivers 2.27× more throughput, resulting in <strong>31% lower cost per query</strong>.</p>
+
+    <h3>Monthly Capacity Planning</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Scenario</th><th>GPU-Only</th><th>Heterogeneous</th><th>Advantage</th></tr></thead>
+        <tbody>
+          <tr><td>Monthly capacity @ c=32</td><td>56.9M queries</td><td>129.3M queries</td><td>2.27×</td></tr>
+          <tr><td>Hardware cost for 100M q/month</td><td>$91/month</td><td>$82/month</td><td>10% cheaper</td></tr>
+          <tr><td>Hardware cost for 200M q/month</td><td>$182/month</td><td>$123/month</td><td>32% cheaper</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <a class="anchor" id="roi-sensitivity"></a>
+    <h2>6. Sensitivity Analysis</h2>
+
+    <h3>Key Variables and Impact</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Variable</th><th>−50% Change</th><th>Impact on ROI</th></tr></thead>
+        <tbody>
+          <tr><td>Incident volume</td><td>500 → 250/month</td><td>ROI drops from 84:1 to 40:1 (still excellent)</td></tr>
+          <tr><td>Engineer cost rate</td><td>$75 → $37.50/hr</td><td>ROI drops from 84:1 to 40:1 (still excellent)</td></tr>
+          <tr><td>Time savings per incident</td><td>15 min → 7.5 min</td><td>ROI drops from 84:1 to 40:1 (still excellent)</td></tr>
+          <tr><td>GPU cost</td><td>$900 → $1,800</td><td>ROI drops from 84:1 to 76:1 (minimal impact)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Break-Even Analysis</h3>
+<pre>
+Monthly cost:       $512
+Hourly savings:     $75 (one engineer hour)
+
+Break-even:         512 / 75 = 6.8 engineer hours saved per month
+At 5 min saved/incident: 82 incidents per month
+
+→ Any organization with &gt;82 incidents/month breaks even.
+</pre>
+
+    <a class="anchor" id="roi-template"></a>
+    <h2>7. TCO Framework Template</h2>
+<pre>
+┌─────────────────────────────────────────────────┐
+│  INFRASTRUCTURE                                   │
+│  GPU count:           ___  × $___/unit           │
+│  Amortization period: ___ months                 │
+│  Power rate:          $___ /kWh                  │
+│  GPU TDP:             ___ W                      │
+│                                                   │
+│  OPERATIONS                                       │
+│  Setup effort:        ___ engineer-days          │
+│  Maintenance:         ___ hours/month            │
+│  Engineer rate:       $___ /hour                 │
+│                                                   │
+│  WORKLOAD                                         │
+│  IT incidents/month:  ___                        │
+│  Avg triage time (before): ___ minutes           │
+│  Avg triage time (after):  ___ minutes           │
+│  Escalation rate (before): ___ %                 │
+│  Escalation rate (after):  ___ %                 │
+│  Escalation cost:     $___ /ticket               │
+│                                                   │
+│  Research tasks/month: ___                       │
+│  Avg task time (before): ___ hours               │
+│  Avg task time (after):  ___ hours               │
+│  Analyst rate:         $___ /hour                │
+└─────────────────────────────────────────────────┘
+</pre>
+
+    <h3>Calculation</h3>
+<pre>
+Monthly cost = (GPU_count × GPU_price / amort_months)
+             + (power_rate × GPU_TDP × GPU_count × 730 / 1000)
+             + (setup_days × eng_rate × 8 / amort_months)
+             + (maint_hours × eng_rate)
+
+IT savings   = incidents × (before - after) / 60 × eng_rate
+             + incidents × (esc_before - esc_after) / 100 × esc_cost
+
+Research savings = tasks × (before - after) × analyst_rate
+
+ROI = (IT savings + Research savings - Monthly cost) / Monthly cost
+</pre>
+
+    <h2>8. Risk Factors</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+        <tbody>
+          <tr><td>Model quality insufficient</td><td>Swap to larger model (70B) with more GPUs</td></tr>
+          <tr><td>Retrieval quality insufficient</td><td>Improve chunking, add metadata, tune reranker</td></tr>
+          <tr><td>Adoption rate low</td><td>Start with IT Ops (clearer win), expand to research</td></tr>
+          <tr><td>Hardware procurement delays</td><td>Start CPU-only (Qwen 3B handles all tiers at slower speed)</td></tr>
+          <tr><td>Data quality issues</td><td>Build corpus pipeline with validation and dedup</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Summary</h2>
+    <p>The Agent Platform ROI is driven by <strong>engineer time savings</strong>, not infrastructure cost reduction. The infrastructure cost ($512/month) is negligible compared to the value generated ($43,750+/month on IT Ops alone).</p>
+    <p>Heterogeneous deployment (Xeon + Arc Pro B60) provides a <strong>31% cost-per-query advantage</strong> over GPU-only at production scale, primarily through the pipeline staging effect that prevents GPU KV-cache saturation.</p>
+    <p><strong>Bottom line</strong>: If your organization handles &gt;82 IT incidents per month, the platform pays for itself. Everything above that is pure ROI.</p>
+
+  </div><!-- /doc-section roi -->
+
+</main>
+
+<script>
+  // Scrollspy — highlight active sidebar link
+  const links = document.querySelectorAll('nav a');
+  const anchors = Array.from(document.querySelectorAll('.anchor')).filter(a => a.id);
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const match = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (match) match.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+
+  anchors.forEach(a => observer.observe(a));
+</script>
+</body>
+</html>
