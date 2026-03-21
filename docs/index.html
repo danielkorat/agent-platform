@@ -470,6 +470,7 @@
     <a href="#roi-research">Research Value Model</a>
     <a href="#roi-combined">Combined ROI</a>
     <a href="#roi-hetero">Heterogeneous vs GPU-Only</a>
+    <a href="#roi-nvidia-equiv">NVIDIA Equivalency</a>
     <a href="#roi-sensitivity">Sensitivity Analysis</a>
     <a href="#roi-template">TCO Template</a>
 
@@ -478,6 +479,7 @@
     <a class="section-link" href="#bench-overview">Overview</a>
     <a href="#bench-infra">Shared Infrastructure</a>
     <a href="#bench-concurrency">Concurrency Scaling</a>
+    <a href="#bench-nvidia-compare">vs. NVIDIA GPU Tiers</a>
 
     <div class="nav-section">IT Ops Scenario</div>
     <a class="section-link" href="#itops-summary">Summary</a>
@@ -996,14 +998,16 @@ graph.add_conditional_edges("route", scenario_router, {
       <table>
         <thead><tr><th>Dimension</th><th>NVIDIA GPU-Only</th><th>Agent Platform (Xeon + Arc Pro)</th></tr></thead>
         <tbody>
-          <tr><td>Hardware cost</td><td>H100: $25,000+ per GPU</td><td>Arc Pro B60: $900 per GPU</td></tr>
-          <tr><td>Throughput @ c=32</td><td>Higher per GPU</td><td>2.27× with heterogeneous</td></tr>
-          <tr><td>KV-cache behavior</td><td>Same saturation issue</td><td>CPU staging prevents saturation</td></tr>
-          <tr><td>Existing infra leverage</td><td>Requires new GPU servers</td><td>Extends existing Xeon servers</td></tr>
-          <tr><td>TCO at scale</td><td>Lower per-GPU but 28× upfront</td><td>Lower entry, better per-query at scale</td></tr>
+          <tr><td>Hardware cost (GPU)</td><td>H100 SXM: ~$25,000&ndash;35,000/GPU<br/>RTX 4090: ~$1,800&ndash;2,200/GPU<br/>L40S: ~$6,000&ndash;9,000/GPU</td><td>Arc Pro B60: <strong>~$500/GPU</strong><br/>8&times; = ~$4,000 total for 192 GB VRAM</td></tr>
+          <tr><td>Decode speed (8B model, C=1)</td><td>H100: ~185&ndash;250 tok/s<br/>A100: ~125&ndash;160 tok/s<br/>RTX 4090: ~80&ndash;95 tok/s</td><td>8&times; B60 tp=8: ~41 tok/s<br/>(PCIe all-reduce + enforce-eager overhead)</td></tr>
+          <tr><td>Throughput @ c=32</td><td>Faster per-GPU decode but same KV-cache saturation at high concurrency without CPU staging</td><td><strong>2.27&times; throughput</strong> via Xeon classification stage that prevents GPU KV-cache saturation</td></tr>
+          <tr><td>192 GB VRAM cost</td><td>8&times; RTX 4090: ~$16,000<br/>4&times; L40S: ~$24,000&ndash;36,000<br/>2&times; H100: ~$50,000&ndash;70,000</td><td><strong>~$4,000</strong> — lowest-cost path to 192 GB VRAM</td></tr>
+          <tr><td>Power at 192 GB VRAM</td><td>8&times; RTX 4090: ~3,600 W<br/>4&times; L40S: ~1,400 W<br/>2&times; H100: ~1,400 W</td><td>8&times; B60: ~960&ndash;1,600 W<br/>(TDP configurable 120&ndash;200 W/card)</td></tr>
+          <tr><td>Existing infra leverage</td><td>Requires dedicated GPU servers</td><td>Extends existing Xeon servers with PCIe add-in cards</td></tr>
         </tbody>
       </table>
     </div>
+    <p style="font-size:.82rem;color:var(--muted);margin-top:-8px;">Arc Pro B60 launch price: ~$500/GPU (Intel Computex 2025). NVIDIA prices: 2025&ndash;2026 street estimates. Decode speeds: published vLLM benchmarks &amp; bandwidth-limited model. See <a href="#bench-nvidia-compare">Benchmarks &rsaquo; LLM Decode Speed</a> and <a href="#roi-nvidia-equiv">ROI &rsaquo; NVIDIA Equivalency</a> for full data.</p>
 
     <h3>vs. Open-Source RAG Frameworks (LlamaIndex, Haystack)</h3>
     <div class="table-wrapper">
@@ -1264,6 +1268,93 @@ graph.add_conditional_edges("route", scenario_router, {
           <tr><td>Hardware cost for 200M q/month</td><td>$182/month</td><td>$123/month</td><td>32% cheaper</td></tr>
         </tbody>
       </table>
+    </div>
+
+    <a class="anchor" id="roi-nvidia-equiv"></a>
+    <h2>5b. Cross-Platform: NVIDIA Equivalency for 192 GB VRAM</h2>
+    <p>To match the 8&times; Arc Pro B60&rsquo;s 192 GB total VRAM &mdash; required for 131K-token context windows at concurrent production scale &mdash; the following NVIDIA configurations are needed. GPU cost estimates are 2025&ndash;2026 street/list prices.</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>GPU Config</th><th>Total VRAM</th><th>GPU Cost (est.)</th><th>Total TDP</th><th>Decode Speed (C=1)</th><th>vs. B60 cost</th></tr></thead>
+        <tbody>
+          <tr style="background:#e3f2fd;">
+            <td><strong>8&times; Intel Arc Pro B60 &#9733;</strong></td>
+            <td>192 GB GDDR6</td>
+            <td><strong>~$4,000</strong></td>
+            <td>~960&ndash;1,600 W</td>
+            <td>~41 tok/s</td>
+            <td>baseline</td>
+          </tr>
+          <tr>
+            <td>8&times; NVIDIA RTX 4090 24 GB</td>
+            <td>192 GB GDDR6X</td>
+            <td>~$16,000</td>
+            <td>~3,600 W</td>
+            <td>~150&ndash;180 tok/s &dagger;</td>
+            <td style="color:#c62828;font-weight:700;">4&times; more expensive</td>
+          </tr>
+          <tr>
+            <td>4&times; NVIDIA L40S 48 GB</td>
+            <td>192 GB GDDR6</td>
+            <td>~$24,000&ndash;36,000</td>
+            <td>~1,400 W</td>
+            <td>~200&ndash;280 tok/s &dagger;</td>
+            <td style="color:#c62828;font-weight:700;">6&ndash;9&times; more expensive</td>
+          </tr>
+          <tr>
+            <td>3&times; NVIDIA A100 80 GB SXM</td>
+            <td>240 GB HBM2e</td>
+            <td>~$36,000&ndash;54,000</td>
+            <td>~1,200 W</td>
+            <td>~250&ndash;350 tok/s &dagger;</td>
+            <td style="color:#c62828;font-weight:700;">9&ndash;13&times; more expensive</td>
+          </tr>
+          <tr>
+            <td>2&times; NVIDIA H100 80 GB SXM</td>
+            <td>160 GB HBM3</td>
+            <td>~$50,000&ndash;70,000</td>
+            <td>~1,400 W</td>
+            <td>~350&ndash;460 tok/s &dagger;</td>
+            <td style="color:#c62828;font-weight:700;">12&ndash;17&times; more expensive</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.82rem;color:var(--muted);">&#9733; Measured on this platform. &dagger; Estimated from memory-bandwidth model and published multi-GPU benchmarks with tp=N; PCIe interconnect for RTX/L40S, NVLink for H100. NVIDIA numbers without enforce-eager (CUDA graphs enabled).</p>
+
+    <h3>Decode Throughput per Kilowatt (192 GB VRAM config)</h3>
+    <p>Power efficiency at VRAM parity &mdash; relevant for data-center power budgets and opex:</p>
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin:16px 0;font-size:.85rem;">
+      <!-- B60: 41/1.28kW = 32 tok/s/kW -->
+      <div style="display:flex;align-items:center;margin-bottom:10px;">
+        <div style="width:210px;text-align:right;padding-right:12px;color:var(--intel-blue);font-weight:600;font-size:.8rem;">8&times; Arc Pro B60</div>
+        <div style="background:#0068b5;height:24px;border-radius:4px;width:calc(32/130*50%);" title="~32 tok/s/kW"></div>
+        <span style="margin-left:8px;font-weight:700;color:#0068b5;">~32 tok/s/kW &#9733;</span>
+      </div>
+      <!-- 8× RTX 4090: 165/3.6kW = 46 -->
+      <div style="display:flex;align-items:center;margin-bottom:10px;">
+        <div style="width:210px;text-align:right;padding-right:12px;color:#5a8a00;font-weight:600;font-size:.8rem;">8&times; NVIDIA RTX 4090</div>
+        <div style="background:#76b900;height:24px;border-radius:4px;width:calc(46/130*50%);" title="~46 tok/s/kW"></div>
+        <span style="margin-left:8px;font-weight:700;color:#5a8a00;">~46 tok/s/kW</span>
+      </div>
+      <!-- 4× L40S: 240/1.4 = 86 -->
+      <div style="display:flex;align-items:center;margin-bottom:10px;">
+        <div style="width:210px;text-align:right;padding-right:12px;color:#2e7d32;font-weight:600;font-size:.8rem;">4&times; NVIDIA L40S</div>
+        <div style="background:#4caf50;height:24px;border-radius:4px;width:calc(86/130*50%);" title="~86 tok/s/kW"></div>
+        <span style="margin-left:8px;font-weight:700;color:#2e7d32;">~86&ndash;100 tok/s/kW</span>
+      </div>
+      <!-- 2× H100: 400/1.4 = 130 -->
+      <div style="display:flex;align-items:center;margin-bottom:10px;">
+        <div style="width:210px;text-align:right;padding-right:12px;color:#b71c1c;font-weight:600;font-size:.8rem;">2&times; NVIDIA H100 SXM</div>
+        <div style="background:#e53935;height:24px;border-radius:4px;width:calc(130/130*50%);" title="~130 tok/s/kW"></div>
+        <span style="margin-left:8px;font-weight:700;color:#b71c1c;">~130&ndash;160 tok/s/kW</span>
+      </div>
+      <div style="font-size:.75rem;color:var(--muted);margin-top:8px;border-top:1px solid var(--border);padding-top:8px;">&#9733; Measured. NVIDIA estimates from published GPU TDP specs and benchmark-derived throughput.</div>
+    </div>
+
+    <div style="background:#e3f2fd;border-left:4px solid #0068b5;border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;font-size:.9rem;">
+      <strong>Bottom line:</strong> For a <strong>$4,000 GPU budget</strong>, 8&times; Arc Pro B60 is the <em>only</em> configuration providing 192 GB VRAM for 131K-token context windows at concurrent scale. The nearest NVIDIA equivalent (8&times; RTX 4090) costs 4&times; more and draws 3&times; the power. The performance gap (&asymp;41 vs 160 tok/s decode) is real but partially architectural: the forced <code>--enforce-eager</code> flag (required for XPU) and PCIe 5 all-reduce latency together account for an estimated 2&ndash;3&times; of that gap. The heterogeneous CPU staging benefit (+2.27&times; throughput at c=32) is unique to this platform and unavailable on GPU-only configurations.
     </div>
 
     <a class="anchor" id="roi-sensitivity"></a>
@@ -1537,6 +1628,113 @@ ROI = (IT savings + Research savings - Monthly cost) / Monthly cost
 
     <div style="background:#fff3e0;border-left:4px solid #ff9800;border-radius:0 8px 8px 0;padding:16px 20px;margin:16px 0;font-size:.9rem;">
       <strong>Key insight:</strong> Pre-truncation drops the per-query cross-encoder cost from ~1,653ms to 437ms, pushing peak pipeline throughput from 18.8 q/s to <strong>91 q/s at C=4</strong>. Beyond C=4, shared CPU resources contend between reranker threads. FAISS alone stays sub-52ms at all concurrencies.
+    </div>
+
+    <!-- ── Cross-Platform LLM Decode Speed Context ── -->
+    <a class="anchor" id="bench-nvidia-compare"></a>
+    <h2>LLM Decode Speed: Platform vs. NVIDIA Reference Points</h2>
+    <p>Llama-3.1-8B-Instruct single-user decode throughput across GPU architectures, all running vLLM. The Intel platform uses <code>tp=8 --enforce-eager</code> (required for XPU); NVIDIA figures reflect default vLLM with CUDA graphs enabled. Sources: vLLM v0.6.0 blog, Modal LLM Almanac, first-principles from published memory bandwidth specs.</p>
+
+    <!-- Decode speed bar chart -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin:20px 0;">
+      <h3 style="margin:0 0 16px;font-size:.95rem;color:var(--intel-blue);">Single-User Decode Throughput &mdash; Llama-3.1-8B-Instruct (tok/s, BF16)</h3>
+      <div style="font-size:.85rem;">
+        <div style="display:flex;align-items:center;margin-bottom:12px;">
+          <div style="width:240px;text-align:right;padding-right:12px;color:var(--intel-blue);font-weight:600;font-size:.8rem;">8&times; Arc Pro B60<br/><span style="font-weight:400;color:var(--muted);">tp=8, enforce-eager, PCIe 5</span></div>
+          <div style="background:#0068b5;height:28px;border-radius:4px;width:calc(41/250*56%);" title="~41 tok/s"></div>
+          <span style="margin-left:10px;font-weight:700;color:#0068b5;">~41 tok/s <span style="font-size:.75rem;background:#0068b5;color:#fff;border-radius:4px;padding:2px 6px;margin-left:4px;">measured</span></span>
+        </div>
+        <div style="display:flex;align-items:center;margin-bottom:12px;">
+          <div style="width:240px;text-align:right;padding-right:12px;color:#5a8a00;font-weight:600;font-size:.8rem;">1&times; NVIDIA RTX 4090 24 GB<br/><span style="font-weight:400;color:var(--muted);">GDDR6X &bull; 1,008 GB/s &bull; 450 W</span></div>
+          <div style="background:#76b900;height:28px;border-radius:4px;width:calc(88/250*56%);" title="~80-95 tok/s"></div>
+          <span style="margin-left:10px;font-weight:700;color:#5a8a00;">~80&ndash;95 tok/s</span>
+        </div>
+        <div style="display:flex;align-items:center;margin-bottom:12px;">
+          <div style="width:240px;text-align:right;padding-right:12px;color:#2e7d32;font-weight:600;font-size:.8rem;">1&times; NVIDIA L40S 48 GB<br/><span style="font-weight:400;color:var(--muted);">GDDR6 &bull; 864 GB/s &bull; 350 W</span></div>
+          <div style="background:#4caf50;height:28px;border-radius:4px;width:calc(90/250*56%);" title="~75-105 tok/s"></div>
+          <span style="margin-left:10px;font-weight:700;color:#2e7d32;">~75&ndash;105 tok/s</span>
+        </div>
+        <div style="display:flex;align-items:center;margin-bottom:12px;">
+          <div style="width:240px;text-align:right;padding-right:12px;color:#e65100;font-weight:600;font-size:.8rem;">1&times; NVIDIA A100 80 GB SXM<br/><span style="font-weight:400;color:var(--muted);">HBM2e &bull; 2,000 GB/s &bull; 400 W</span></div>
+          <div style="background:#ff8f00;height:28px;border-radius:4px;width:calc(143/250*56%);" title="~125-160 tok/s"></div>
+          <span style="margin-left:10px;font-weight:700;color:#e65100;">~125&ndash;160 tok/s</span>
+        </div>
+        <div style="display:flex;align-items:center;margin-bottom:12px;">
+          <div style="width:240px;text-align:right;padding-right:12px;color:#b71c1c;font-weight:600;font-size:.8rem;">1&times; NVIDIA H100 80 GB SXM<br/><span style="font-weight:400;color:var(--muted);">HBM3 &bull; 3,350 GB/s &bull; 700 W</span></div>
+          <div style="background:#e53935;height:28px;border-radius:4px;width:calc(218/250*56%);" title="~185-250 tok/s"></div>
+          <span style="margin-left:10px;font-weight:700;color:#b71c1c;">~185&ndash;250 tok/s</span>
+        </div>
+        <div style="margin-top:10px;font-size:.75rem;color:var(--muted);border-top:1px solid var(--border);padding-top:8px;">
+          NVIDIA figures from: vLLM v0.6.0 benchmark blog (Sep 2024), Modal LLM Almanac (2025), and bandwidth-limited decode model (tok/s ≈ 1 / (model_size_GB / mem_bw_TBps)). Single-user, BF16 weights, no quantization.
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>GPU / Config</th><th>Memory</th><th>Bandwidth</th><th>Decode tok/s (C=1)</th><th>Hardware cost (GPU only)</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr style="background:#e3f2fd;">
+            <td><strong>8&times; Arc Pro B60 (this platform)</strong></td>
+            <td>192 GB GDDR6<br/>(8 &times; 24 GB)</td>
+            <td>8 &times; 456 GB/s<br/>via PCIe 5</td>
+            <td><strong>~41 tok/s</strong></td>
+            <td><strong>~$4,000</strong></td>
+            <td>tp=8, enforce-eager required; PCIe 5 all-reduce ~6&ndash;10 ms/step; no CUDA graphs (XPU limitation)</td>
+          </tr>
+          <tr>
+            <td>1&times; NVIDIA RTX 4090 24 GB</td>
+            <td>24 GB GDDR6X</td>
+            <td>1,008 GB/s</td>
+            <td>~80&ndash;95 tok/s</td>
+            <td>~$1,800&ndash;2,200</td>
+            <td>CUDA graphs; single-GPU decode of 8B model; 24 GB limits KV-cache at 131K context with concurrent users</td>
+          </tr>
+          <tr>
+            <td>1&times; NVIDIA L40S 48 GB</td>
+            <td>48 GB GDDR6</td>
+            <td>864 GB/s</td>
+            <td>~75&ndash;105 tok/s</td>
+            <td>~$6,000&ndash;9,000</td>
+            <td>CUDA graphs; data-center workstation card; more KV-cache than RTX 4090 but 4&times; less than 8&times; B60</td>
+          </tr>
+          <tr>
+            <td>1&times; NVIDIA A100 80 GB SXM</td>
+            <td>80 GB HBM2e</td>
+            <td>2,000 GB/s</td>
+            <td>~125&ndash;160 tok/s</td>
+            <td>~$12,000&ndash;18,000</td>
+            <td>vLLM benchmark blog; HBM bandwidth-limited; 80 GB supports 131K context with moderate concurrency</td>
+          </tr>
+          <tr>
+            <td>1&times; NVIDIA H100 80 GB SXM</td>
+            <td>80 GB HBM3</td>
+            <td>3,350 GB/s</td>
+            <td>~185&ndash;250 tok/s</td>
+            <td>~$25,000&ndash;35,000</td>
+            <td>vLLM v0.6.0 blog (1 tok every ~5 ms at load); best single-GPU option for latency-critical workloads</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;">
+      <div style="background:#e8f5e9;border-left:4px solid #2e7d32;border-radius:0 8px 8px 0;padding:16px 18px;font-size:.88rem;">
+        <strong style="color:#1b5e20;">Why is 8&times; B60 slower than a single H100?</strong>
+        <ul style="margin:8px 0 0;padding-left:18px;line-height:1.8;">
+          <li><strong>PCIe all-reduce overhead:</strong> tp=8 requires 8-way all-reduce per decode step via PCIe 5 (64 GB/s per direction). The H100&rsquo;s HBM3 serves all weights locally at 3,350 GB/s with zero communication latency.</li>
+          <li><strong>enforce-eager constraint:</strong> XPU support in vLLM requires <code>--enforce-eager</code>, disabling CUDA graph capture. CUDA graphs eliminate per-step kernel launch overhead (~2&ndash;4 ms), reducing each decode step by ~30&ndash;50% on NVIDIA.</li>
+          <li><strong>GDDR6 vs HBM3:</strong> 456 GB/s per B60 vs 3,350 GB/s per H100 &mdash; a 7.4&times; bandwidth gap per GPU card.</li>
+        </ul>
+      </div>
+      <div style="background:#fff3e0;border-left:4px solid #e65100;border-radius:0 8px 8px 0;padding:16px 18px;font-size:.88rem;">
+        <strong style="color:#bf360c;">Why use 8&times; B60 then?</strong>
+        <ul style="margin:8px 0 0;padding-left:18px;line-height:1.8;">
+          <li><strong>Cost:</strong> 8&times; B60 &asymp; <strong>$4,000</strong> GPU cost. A single H100 SXM &asymp; $25,000&ndash;35,000. Two H100s for 160 GB &asymp; $50,000&ndash;70,000.</li>
+          <li><strong>VRAM budget:</strong> 192 GB enables 131K-token context at concurrent scale. No NVIDIA single-GPU option provides 192 GB under $12,000.</li>
+          <li><strong>Heterogeneous staging:</strong> The Xeon CPU classification stage adds <strong>2.27&times; throughput at c=32</strong> &mdash; an architectural gain unavailable on GPU-only stacks.</li>
+        </ul>
+      </div>
     </div>
 
   </div><!-- /doc-section benchmarks -->

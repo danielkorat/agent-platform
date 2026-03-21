@@ -116,11 +116,14 @@ This matters because:
 
 | Dimension | NVIDIA GPU-Only | Agent Platform (Xeon + Arc Pro) |
 |---|---|---|
-| Hardware cost | H100: $25,000+ per GPU | Arc Pro B60: $900 per GPU |
-| Throughput @ c=32 | Higher per GPU | 2.27× with heterogeneous |
-| KV-cache behavior | Same saturation issue | CPU staging prevents saturation |
-| Existing infra leverage | Requires new GPU servers | Extends existing Xeon servers |
-| TCO at scale | Lower per-GPU but 28× upfront | Lower entry, better per-query at scale |
+| Hardware cost (GPU) | H100 SXM: ~$25,000–35,000/GPU · RTX 4090: ~$1,800–2,200/GPU · L40S: ~$6,000–9,000/GPU | Arc Pro B60: **~$500/GPU** · 8× = ~$4,000 for 192 GB VRAM |
+| Decode speed (8B, C=1) | H100: ~185–250 tok/s · A100: ~125–160 tok/s · RTX 4090: ~80–95 tok/s | 8× B60 tp=8: ~41 tok/s (PCIe all-reduce + enforce-eager overhead) |
+| Throughput @ c=32 | Faster per-GPU decode, same KV-cache saturation at high concurrency without CPU staging | **2.27× throughput** via Xeon classification stage preventing GPU KV-cache saturation |
+| Cost for 192 GB VRAM | 8× RTX 4090: ~$16,000 · 4× L40S: ~$24,000–36,000 · 2× H100: ~$50,000–70,000 | **~$4,000** — lowest-cost path to 192 GB VRAM |
+| Power at 192 GB VRAM | 8× RTX 4090: ~3,600 W · 4× L40S: ~1,400 W · 2× H100: ~1,400 W | 8× B60: ~960–1,600 W (TDP configurable 120–200 W/card) |
+| Existing infra leverage | Requires dedicated GPU servers | Extends existing Xeon servers with PCIe add-in cards |
+
+> Arc Pro B60 launch price: ~$500/GPU (Intel Computex 2025). NVIDIA prices: 2025–2026 street estimates. Decode speeds from published vLLM v0.6.0 benchmarks and memory-bandwidth model. See docs/index.html for full data tables.
 
 **When to use each**: NVIDIA is better for large-scale training, multi-model serving, and organizations already invested in CUDA ecosystem. Agent Platform on Intel is better for inference-focused workloads, cost-sensitive deployments, and organizations leveraging existing Xeon infrastructure.
 
