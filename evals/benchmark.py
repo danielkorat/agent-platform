@@ -66,7 +66,7 @@ async def run_single_query(query_def: dict, api_base: str = "http://localhost:80
         expected_complexity=query_def["expected_complexity"],
     )
 
-    async with httpx.AsyncClient(timeout=120.0) as client:
+    async with httpx.AsyncClient(timeout=120.0, trust_env=False) as client:
         t0 = time.time()
         try:
             # Submit task

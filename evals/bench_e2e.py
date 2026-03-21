@@ -1,0 +1,419 @@
+"""End-to-end scenario benchmarks — IT Ops & Deep Research.
+
+Runs the actual LangGraph graphs with live LLM inference.
+Measures per-query: wall time, node trace, LLM calls/tokens, retrieval
+timing, quality metrics (packed chunks, scores), and cost.
+
+Requires: vLLM servers running on localhost:8000 (GPU) and :8001 (CPU).
+
+Output: evals/results/e2e_bench.json
+
+Usage:
+    python3 -m evals.bench_e2e
+    python3 -m evals.bench_e2e --scenarios it_ops
+    python3 -m evals.bench_e2e --scenarios deep_research --tiers fast,medium
+"""
+
+from __future__ import annotations
+
+import argparse
+import asyncio
+import json
+import os
+import statistics
+import sys
+import time
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
+from typing import Any
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+
+
+# ── Monthly cost for per-query cost calculation ─────────────────────────────
+_MONTHLY_COST_USD = 512.0
+_SECONDS_PER_MONTH = 30.44 * 24 * 3600
+
+
+# ── Queries per scenario and tier ───────────────────────────────────────────
+
+IT_OPS_QUERIES = {
+    "fast": [
+        "What is the status of incident INC-001?",
+        "How do I restart the Kubernetes scheduler?",
+        "What ports does Redis use by default?",
+    ],
+    "medium": [
+        "Production database connection pool exhausted on db-prod-01, pods returning 503 errors. Pool set to 100 connections but 150+ active. Affecting order-service, payment-service, inventory-service.",
+        "Kubernetes pods in CrashLoopBackOff with OOMKilled after deployment v2.4.1. Memory limit 512Mi, JWT validation middleware suspected leak.",
+        "SSL certificate expiring in 7 days, cert-manager renewal failing with ACME challenge timeout. External DNS has stale CNAME record.",
+    ],
+}
+
+DEEP_RESEARCH_QUERIES = {
+    "fast": [
+        "What is RAG?",
+        "How does BM25 scoring work?",
+        "What is cross-encoder reranking?",
+    ],
+    "medium": [
+        "How does hybrid retrieval improve over dense-only retrieval in enterprise systems?",
+        "Explain the tradeoffs between single-agent and supervisor/sub-agent orchestration patterns.",
+    ],
+    "deep": [
+        "Compare dense retrieval vs sparse retrieval vs hybrid retrieval for enterprise knowledge systems. Analyse precision, recall, latency, and infrastructure cost tradeoffs at 100K, 500K, and 1M document scale.",
+        "Research the intersection of retrieval-augmented generation and agent orchestration. How should retrieval be integrated into multi-agent systems — per-agent retrieval, shared retrieval, or supervised retrieval allocation?",
+    ],
+}
+
+# Execution path overrides by scenario and tier
+_EXECUTION_PATHS = {
+    ("it_ops", "fast"): "it_ops_fast",
+    ("it_ops", "medium"): "it_ops_single_agent",
+    ("deep_research", "fast"): "research_fast",
+    ("deep_research", "medium"): "research_single_agent",
+    ("deep_research", "deep"): "research_supervisor",
+}
+
+
+# ── Result types ────────────────────────────────────────────────────────────
+
+@dataclass
+class E2EResult:
+    query: str
+    scenario: str
+    tier: str
+    wall_s: float = 0.0
+    execution_path: str = ""
+    llm_calls: int = 0
+    input_tokens: int = 0
+    output_tokens: int = 0
+    retrieval_nodes: int = 0
+    retrieval_total_s: float = 0.0
+    llm_total_s: float = 0.0
+    other_s: float = 0.0
+    node_count: int = 0
+    node_trace: list = field(default_factory=list)
+    n_packed: int = 0
+    n_sub_findings: int = 0
+    supervisor_rounds: int = 0
+    output_length: int = 0
+    cost_per_query_usd: float = 0.0
+    error: str = ""
+
+
+_RETRIEVAL_KEYWORDS = ("retriev", "retrieve_candidates")
+_LLM_KEYWORDS = (
+    "fast_path", "fast_synthesis", "brief", "plan", "sub_agent",
+    "reflect", "report", "synth", "extract", "root_cause",
+    "actions", "closure", "recommended",
+)
+
+
+def _classify_node(name: str) -> str:
+    """Classify a node as retrieval, llm, or other."""
+    low = name.lower()
+    if any(kw in low for kw in _RETRIEVAL_KEYWORDS):
+        return "retrieval"
+    if any(kw in low for kw in _LLM_KEYWORDS):
+        return "llm"
+    return "other"
+
+
+# ── Graph runner ────────────────────────────────────────────────────────────
+
+async def run_e2e(query: str, scenario: str, tier: str) -> E2EResult:
+    """Run the full graph for one query and collect metrics."""
+    from token_tracker import TokenTracker
+
+    if scenario == "it_ops":
+        from graphs.it_ops.graph import get_it_ops_graph
+        graph = get_it_ops_graph()
+    else:
+        from graphs.deep_research.graph import get_deep_research_graph
+        graph = get_deep_research_graph()
+
+    tracker = TokenTracker(task_id=f"bench_{scenario}_{tier}_{int(time.time() * 1000)}")
+    result = E2EResult(query=query, scenario=scenario, tier=tier)
+
+    initial_state = {
+        "request_id": f"bench_{scenario}_{tier}_{int(time.time() * 1000)}",
+        "tenant_id": "default",
+        "user_id": "benchmark",
+        "scenario": scenario,
+        "user_query": query,
+        "metrics": {"_tracker": tracker},
+        "errors": [],
+        "node_trace": [],
+        # Force the execution path for this tier
+        "complexity_class": tier,
+        "execution_path": _EXECUTION_PATHS[(scenario, tier)],
+    }
+
+    t0 = time.perf_counter()
+    try:
+        final_state = await graph.ainvoke(initial_state)
+    except Exception as e:
+        result.wall_s = round(time.perf_counter() - t0, 3)
+        result.error = str(e)
+        return result
+
+    result.wall_s = round(time.perf_counter() - t0, 3)
+    result.execution_path = final_state.get("execution_path", "")
+    result.node_trace = final_state.get("node_trace", [])
+    result.node_count = len(result.node_trace)
+
+    # Token tracker metrics
+    result.llm_calls = tracker.total_calls
+    result.input_tokens = tracker.total_input_tokens
+    result.output_tokens = tracker.total_output_tokens
+
+    # Classify nodes and accumulate time
+    for nt in result.node_trace:
+        name = nt.get("node", "")
+        wall = nt.get("wall_s", 0.0)
+        kind = _classify_node(name)
+        if kind == "retrieval":
+            result.retrieval_nodes += 1
+            result.retrieval_total_s += wall
+        elif kind == "llm":
+            result.llm_total_s += wall
+        else:
+            result.other_s += wall
+
+    # Quality: packed context
+    packed = final_state.get("packed_context", [])
+    result.n_packed = len(packed)
+
+    # Deep Research supervisor metrics
+    result.n_sub_findings = len(final_state.get("sub_findings", []))
+    result.supervisor_rounds = final_state.get("supervisor_round", 0)
+
+    # Output
+    output = final_state.get("final_output", "") or final_state.get("draft_output", "")
+    result.output_length = len(output)
+
+    # Cost model: amortised infra
+    cost_per_s = _MONTHLY_COST_USD / _SECONDS_PER_MONTH
+    result.cost_per_query_usd = round(cost_per_s * result.wall_s, 6)
+
+    return result
+
+
+# ── Main ────────────────────────────────────────────────────────────────────
+
+async def async_main(scenarios: list[str], tier_filter: list[str] | None = None):
+    output_dir = Path("evals/results")
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    query_map = {
+        "it_ops": IT_OPS_QUERIES,
+        "deep_research": DEEP_RESEARCH_QUERIES,
+    }
+
+    all_results: dict[str, dict[str, list[E2EResult]]] = {}
+
+    print("=" * 70)
+    print("END-TO-END SCENARIO BENCHMARKS")
+    print("=" * 70)
+    print(f"Scenarios: {', '.join(scenarios)}")
+    if tier_filter:
+        print(f"Tier filter: {', '.join(tier_filter)}")
+    print(f"LLM: meta-llama/Llama-3.1-8B-Instruct (GPU) + Qwen2.5-3B (CPU)")
+    print()
+
+    for scenario in scenarios:
+        queries_by_tier = query_map.get(scenario, {})
+        scenario_results: dict[str, list[E2EResult]] = {}
+
+        print(f"\n{'='*70}")
+        print(f"  SCENARIO: {scenario.upper().replace('_', ' ')}")
+        print(f"{'='*70}")
+
+        for tier, queries in queries_by_tier.items():
+            if tier_filter and tier not in tier_filter:
+                continue
+            if not queries:
+                continue
+
+            print(f"\n{'─'*60}")
+            print(f"  {scenario.upper()} / {tier.upper()} ({len(queries)} queries)")
+            print(f"{'─'*60}")
+
+            tier_results = []
+            for i, q in enumerate(queries):
+                print(f"\n  [{i + 1}/{len(queries)}] {q[:70]}...")
+                result = await run_e2e(q, scenario, tier)
+                tier_results.append(result)
+
+                if result.error:
+                    print(f"    ✗ ERROR: {result.error[:120]}")
+                else:
+                    print(f"    ✓ {result.wall_s:.1f}s  "
+                          f"LLM={result.llm_calls} calls/{result.output_tokens} tok  "
+                          f"retrieval={result.retrieval_total_s:.1f}s  "
+                          f"packed={result.n_packed}  "
+                          f"output={result.output_length} chars")
+                    if result.n_sub_findings:
+                        print(f"      sub-findings={result.n_sub_findings}  "
+                              f"supervisor_rounds={result.supervisor_rounds}")
+
+                    # Per-node trace
+                    for nt in result.node_trace:
+                        name = nt.get("node", "")
+                        wall = nt.get("wall_s", 0.0)
+                        extra = ""
+                        if nt.get("subtask_count"):
+                            extra = f" ({nt['subtask_count']} subtasks)"
+                        if nt.get("coverage"):
+                            extra = f" (coverage={nt['coverage']:.2f})"
+                        print(f"      {name:30s}  {wall:7.2f}s{extra}")
+
+            scenario_results[tier] = tier_results
+        all_results[scenario] = scenario_results
+
+    # ── Summary + JSON output ────────────────────────────────────────────
+    print("\n" + "=" * 70)
+    print("SUMMARY")
+    print("=" * 70)
+
+    output = {
+        "meta": {
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "scenarios": scenarios,
+            "type": "full_e2e_graph",
+        },
+        "scenarios": {},
+    }
+
+    for scenario in scenarios:
+        scenario_output: dict[str, Any] = {"results": {}, "summary": {}}
+        scenario_results = all_results.get(scenario, {})
+
+        print(f"\n  {scenario.upper().replace('_', ' ')}:")
+
+        for tier, results in scenario_results.items():
+            ok = [r for r in results if not r.error]
+            if not ok:
+                print(f"    {tier.upper()}: all failed")
+                scenario_output["results"][tier] = [asdict(r) for r in results]
+                continue
+
+            walls = [r.wall_s for r in ok]
+            llm_calls = [r.llm_calls for r in ok]
+            out_tok = [r.output_tokens for r in ok]
+            in_tok = [r.input_tokens for r in ok]
+            ret_s = [r.retrieval_total_s for r in ok]
+            llm_s = [r.llm_total_s for r in ok]
+            other_s = [r.other_s for r in ok]
+            packed = [r.n_packed for r in ok]
+            costs = [r.cost_per_query_usd for r in ok]
+            output_lens = [r.output_length for r in ok]
+
+            mean_wall = statistics.mean(walls)
+            mean_ret = statistics.mean(ret_s)
+            mean_llm = statistics.mean(llm_s)
+            mean_other = statistics.mean(other_s)
+
+            summary: dict[str, Any] = {
+                "n_queries": len(ok),
+                "n_errors": len(results) - len(ok),
+                "wall_s": {
+                    "mean": round(statistics.mean(walls), 1),
+                    "min": round(min(walls), 1),
+                    "max": round(max(walls), 1),
+                    "stdev": round(statistics.stdev(walls), 1) if len(walls) > 1 else 0,
+                },
+                "llm_calls": {
+                    "mean": round(statistics.mean(llm_calls), 1),
+                    "total": sum(r.llm_calls for r in ok),
+                },
+                "input_tokens": {
+                    "mean": round(statistics.mean(in_tok)),
+                    "total": sum(r.input_tokens for r in ok),
+                },
+                "output_tokens": {
+                    "mean": round(statistics.mean(out_tok)),
+                    "total": sum(r.output_tokens for r in ok),
+                },
+                "retrieval_s": {
+                    "mean": round(mean_ret, 2),
+                    "share_pct": round(mean_ret / mean_wall * 100, 1) if mean_wall > 0 else 0,
+                },
+                "llm_s": {
+                    "mean": round(mean_llm, 2),
+                    "share_pct": round(mean_llm / mean_wall * 100, 1) if mean_wall > 0 else 0,
+                },
+                "overhead_s": {
+                    "mean": round(mean_other, 2),
+                    "share_pct": round(mean_other / mean_wall * 100, 1) if mean_wall > 0 else 0,
+                },
+                "packed_chunks": {"mean": round(statistics.mean(packed), 1)},
+                "cost_per_query_usd": round(statistics.mean(costs), 6),
+                "output_length": {"mean": round(statistics.mean(output_lens))},
+            }
+
+            # Deep Research extras
+            if scenario == "deep_research" and tier == "deep":
+                sub_findings = [r.n_sub_findings for r in ok if r.n_sub_findings]
+                sup_rounds = [r.supervisor_rounds for r in ok if r.supervisor_rounds]
+                if sub_findings:
+                    summary["sub_findings_mean"] = round(statistics.mean(sub_findings), 1)
+                if sup_rounds:
+                    summary["supervisor_rounds_mean"] = round(statistics.mean(sup_rounds), 1)
+
+            # IT Ops extras
+            if scenario == "it_ops" and tier == "medium":
+                # Count approval gates
+                approval_nodes = sum(
+                    1 for r in ok
+                    for nt in r.node_trace
+                    if "approval" in nt.get("node", "").lower()
+                )
+                summary["approval_gates_triggered"] = approval_nodes
+
+            scenario_output["summary"][tier] = summary
+            scenario_output["results"][tier] = [asdict(r) for r in results]
+
+            ret_pct = summary["retrieval_s"]["share_pct"]
+            llm_pct = summary["llm_s"]["share_pct"]
+
+            print(f"    {tier.upper()}:")
+            print(f"      Wall time:    {summary['wall_s']['mean']:.1f}s  "
+                  f"(range: {summary['wall_s']['min']:.1f}–{summary['wall_s']['max']:.1f}s)")
+            print(f"      LLM calls:    {summary['llm_calls']['mean']:.1f} mean  "
+                  f"({summary['output_tokens']['mean']:.0f} output tok/query)")
+            print(f"      Retrieval:    {summary['retrieval_s']['mean']:.1f}s ({ret_pct:.0f}%)")
+            print(f"      LLM time:     {summary['llm_s']['mean']:.1f}s ({llm_pct:.0f}%)")
+            print(f"      Packed:       {summary['packed_chunks']['mean']:.1f} chunks")
+            print(f"      Output:       {summary['output_length']['mean']:.0f} chars")
+            print(f"      Cost:         ${summary['cost_per_query_usd']:.4f}/query")
+
+        output["scenarios"][scenario] = scenario_output
+
+    # Save
+    out_path = output_dir / "e2e_bench.json"
+    with open(out_path, "w") as f:
+        json.dump(output, f, indent=2, default=str)
+    print(f"\nResults saved to {out_path}")
+    return output
+
+
+def main():
+    parser = argparse.ArgumentParser(description="E2E scenario benchmarks")
+    parser.add_argument("--scenarios", default="it_ops,deep_research",
+                        help="Comma-separated scenarios to benchmark")
+    parser.add_argument("--tiers", default=None,
+                        help="Comma-separated tiers to benchmark (default: all available)")
+    args = parser.parse_args()
+
+    scenarios = [s.strip() for s in args.scenarios.split(",")]
+    tier_filter = [t.strip() for t in args.tiers.split(",")] if args.tiers else None
+    asyncio.run(async_main(scenarios, tier_filter))
+
+
+if __name__ == "__main__":
+    main()
