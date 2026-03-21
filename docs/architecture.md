@@ -69,7 +69,7 @@ Retrieval runs on the Xeon CPU through a multi-stage pipeline:
 5. **Cross-encoder reranking**: ms-marco-MiniLM-L-6-v2 scores each candidate against the query
 6. **Context packing**: Deduplicate (90% overlap threshold), enforce source diversity (max 3 per source), trim to token budget
 
-The retrieval pipeline typically returns 5-10 high-quality passages in <0.5s.
+The retrieval pipeline typically returns 3-5 packed passages in ~2.2s (dominated by cross-encoder reranking at 565ms p50). FAISS HNSW search alone runs at 18ms p50 on the 12K corpus.
 
 ### Phase 4: Scenario Execution (GPU + CPU)
 
@@ -130,7 +130,7 @@ The deep path has a circuit breaker: max 2 reflection iterations before forced f
 │  Multi-hop:      Sub-agent research, supervisor reflection     │
 │                                                                  │
 │  Serving:        vLLM with tp=8, prefix caching, eager mode   │
-│  Performance:    ~41 tok/s output, 131K max context            │
+│  Performance:    ~95 tok/s output, 131K max context            │
 │                                                                  │
 │  Why GPU: Autoregressive generation is memory-bandwidth bound  │
 │           8 GPUs provide enough KV-cache for large contexts    │
@@ -261,24 +261,53 @@ Key design decisions:
 
 ### Hybrid Search Design
 
-| Stage | Purpose | Typical Latency |
+| Stage | Purpose | Benchmarked Latency (12K corpus) |
 |---|---|---|
-| Embedding | Convert query to 384-dim vector | 5-10ms |
-| FAISS search | Dense similarity, top-50 | 1-5ms |
-| BM25 search | Keyword matching, top-50 | 5-10ms |
+| Embedding | Convert query to 384-dim vector | 8-15ms |
+| FAISS HNSW search | Dense similarity, top-50 | p50=18ms, p99=21ms (C=1) |
+| BM25 search | Keyword matching, top-50 | p50=31ms, p99=31ms (C=1) |
 | RRF fusion | Merge + deduplicate | <1ms |
-| Cross-encoder | Score top-50 against query | 50-200ms |
+| Cross-encoder rerank | Score top-20 against query | p50=563ms (torch), 467ms (ONNX) @ 20 cands |
 | Context packing | Dedup, diversity, budget | <1ms |
+| **Full pipeline** | **End-to-end retrieval** | **p50=2,244ms (C=1)** |
+
+**Reranker optimization options** (configurable via `RERANK_BACKEND`, `RERANK_MAX_CANDIDATES`, `RERANK_DEVICE`):
+
+| Config | C=1 p50 | C=16 p50 | C=32 p50 | Peak q/s | Speedup vs baseline |
+|---|---|---|---|---|---|
+| Torch/50 (old default) | 1,653ms | 14,845ms | 25,579ms | 1.1 | 1.0× |
+| **Torch/20 (new default)** | **563ms** | **5,512ms** | **10,099ms** | **3.1** | **2.5–2.9×** |
+| Torch/10 | 183ms | 1,146ms | 1,797ms | 12.8 | 9–14× |
+| ONNX/20 | 467ms | 1,878ms | 2,725ms | 9.2 | 3.5–9.4× |
+| **ONNX/10** | **216ms** | **986ms** | **1,526ms** | **19.3** | **7.7–16.8×** |
+
+ONNX outperforms Torch at higher concurrency due to better multi-threaded parallelism in ORT.
+**Recommended production config: `RERANK_BACKEND=onnx`, `RERANK_MAX_CANDIDATES=10`** — delivers 216ms p50 single-query, 19.3 q/s peak, at zero additional hardware cost.
+
+**GPU reranking (`RERANK_DEVICE=cuda|xpu`): not recommended for this deployment.** All 8 Arc Pro B60s are fully committed to vLLM at `tp=8` (required for the 131K context window). Adding the reranker to any of those cards risks OOM and LLM latency spikes. The GPU path is implemented and available for future environments with a dedicated inference card — on a spare GPU it would yield ~10–20× over CPU single-query (~15ms vs 216ms). In this deployment, ONNX/10 already exceeds retrieval throughput needs and the E2E bottleneck is LLM decode (5–40s), not reranking.
+
+**Concurrency scaling** (full retrieval pipeline):
+
+| Concurrency | p50 Latency | Throughput |
+|---|---|---|
+| 1 | 2,244 ms | 13.4 q/s |
+| 4 | 1,876 ms | 16.0 q/s |
+| 16 | 1,593 ms | 18.8 q/s |
+| 32 | 1,633 ms | 18.4 q/s |
+| 64 | 1,869 ms | 16.1 q/s |
+
+The cross-encoder (565ms p50) dominates retrieval latency. At C=16, CPU parallelism is fully utilized. Beyond C=32, contention increases latency — the cross-encoder is compute-bound and serializes on CPU.
 
 **Why hybrid?** Dense search excels at semantic similarity but misses exact keyword matches. BM25 catches exact terms but fails on paraphrase. RRF fusion gives the best of both.
 
-**Why reranking?** FAISS top-50 typically has 60-80% irrelevant results. The cross-encoder prunes these, reducing token waste in downstream LLM calls by 60-80%.
+**Why reranking?** FAISS top-50 typically has 60-80% irrelevant results. The cross-encoder prunes these, yielding top-1 rerank scores of 2.6-6.7 across IT Ops queries and saving 30K-50K tokens per query in context packing.
 
 ### Indexing
 
-- **Chunking**: 512-token chunks with 64-token overlap (configurable)
+- **Corpus**: 12,160 documents (160 runbooks, 9,000 incident histories, 3,000 KB how-tos)
+- **Chunking**: Full-document chunking (runbooks and incidents are self-contained)
 - **Embeddings**: BGE-small-en-v1.5 (384-dim, 33M params, runs on CPU in <50ms/chunk)
-- **Index**: FAISS IndexFlatIP (exact cosine similarity after L2 normalization)
+- **Index**: FAISS IndexHNSWFlat (M=32, efConstruction=200, efSearch=64) — auto-selected for corpus ≥10K vectors. 290× faster than IndexFlatIP at 623K vectors, 98% recall@20
 - **Metadata**: Every chunk carries `chunk_id`, `source_id`, `title`, `text`, `tenant_id`
 
 ---
@@ -346,3 +375,59 @@ SECONDARY_LLM_MODEL=Qwen/Qwen2.5-7B-Instruct
 ```
 
 The platform is model-agnostic — any vLLM-compatible model works. Adjust `tp` in the vLLM server config to match the model's size.
+
+---
+
+## Benchmark Results (Measured)
+
+All numbers below are from real benchmarks on the production Xeon 6 server with the 12,160-document IT Ops corpus. See `evals/bench_components.py` for the full harness.
+
+### Component Latency
+
+| Component | p50 | p99 | Notes |
+|---|---|---|---|
+| **FAISS HNSW search** | 18 ms | 21 ms | 12K vectors, 384-dim, M=32 ef=64 |
+| **BM25 lexical search** | 31 ms | 31 ms | 12K documents, rank_bm25 |
+| **Cross-encoder rerank** | 565 ms | 765 ms | Top-20 → top-10, ms-marco-MiniLM |
+| **Full retrieval pipeline** | 2,244 ms | 2,244 ms | Vector+BM25+RRF+rerank+pack |
+| **Router (rules only)** | 0.022 ms | 0.022 ms | 100% rule coverage on eval set |
+
+### Concurrency Scaling — FAISS HNSW
+
+| Concurrency | p50 (ms) | Throughput (q/s) |
+|---|---|---|
+| 1 | 18 | 1,645 |
+| 4 | 30 | 988 |
+| 16 | 47 | 622 |
+| 32 | 51 | 609 |
+| 64 | 51 | 578 |
+
+### Concurrency Scaling — Full Retrieval Pipeline
+
+| Concurrency | p50 (ms) | Throughput (q/s) |
+|---|---|---|
+| 1 | 2,244 | 13.4 |
+| 4 | 1,876 | 16.0 |
+| 16 | 1,593 | 18.8 |
+| 32 | 1,633 | 18.4 |
+| 64 | 1,869 | 16.1 |
+
+Peak retrieval efficiency at C=16–32. Beyond C=32 the cross-encoder serializes, degrading throughput.
+
+### Simulated E2E Latency by Tier
+
+| Scenario / Tier | Total (ms) | LLM (ms) | Retrieval (ms) | Cost/Query |
+|---|---|---|---|---|
+| IT Ops / Fast | 5,447 | 3,203 | 2,244 | $0.0018 |
+| IT Ops / Medium | 10,800 | 8,556 | 2,244 | $0.0035 |
+| IT Ops / Deep | 23,567 | 21,323 | 2,244 | $0.0076 |
+| Research / Fast | 6,500 | 4,256 | 2,244 | $0.0021 |
+| Research / Medium | 8,650 | 6,406 | 2,244 | $0.0028 |
+| Research / Deep | 39,446 | 37,202 | 2,244 | $0.0128 |
+
+### TCO at Capacity
+
+- **Monthly infra cost**: $512
+- **Monthly capacity** (GPU C=8): 1.46M queries
+- **Cost per query at capacity**: $0.00035
+- **Break-even**: 82 IT incidents/month

@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     lexical_index_dir: str = "data/lexical"
     rerank_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     rerank_top_k: int = 10
+    rerank_max_candidates: int = 20   # max passages scored by cross-encoder (pre-truncate)
+    rerank_backend: str = "torch"     # "torch" or "onnx"
+    rerank_device: str = "cpu"        # "cpu", "cuda", "xpu"
     retrieval_top_n: int = 50
 
     # ── FAISS index tuning ───────────────────────────────────

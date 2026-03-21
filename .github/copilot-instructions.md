@@ -37,11 +37,11 @@ agent_platform/
 │       └── prompts.py            # Research prompt templates
 │
 ├── retrieval/
-│   ├── vector_store.py           # FAISS IndexFlatIP (cosine sim after L2 norm)
+│   ├── vector_store.py           # FAISS IndexHNSWFlat / IndexFlatIP (auto-selected by corpus size)
 │   ├── lexical_store.py          # BM25 via rank_bm25
 │   ├── embeddings.py             # BGE-small-en-v1.5 (384-dim)
 │   ├── fusion.py                 # Reciprocal Rank Fusion (k=60)
-│   ├── reranker.py               # Cross-encoder ms-marco-MiniLM-L-6-v2
+│   ├── reranker.py               # Cross-encoder reranker: torch + ONNX backends, GPU-optional
 │   ├── packer.py                 # Context packing: dedup, diversity, token budget
 │   └── service.py                # RetrievalService: vector → lexical → RRF → rerank → pack
 │
@@ -57,7 +57,8 @@ agent_platform/
 │   ├── tickets.py                # Mock ticket system (5 incidents)
 │   ├── kb.py                     # Mock KB (7 articles: 4 runbooks, 3 research)
 │   ├── tool_proxy.py             # Secure tool proxy with allowlist + RBAC
-│   └── build_demo_index.py       # FAISS + BM25 index builder from mock data
+│   ├── build_demo_index.py       # FAISS + BM25 index builder from mock data
+│   └── build_large_scale_index.py # 12K IT Ops corpus generator + index builder
 │
 ├── db/
 │   ├── models.py                 # SQLAlchemy ORM: TaskRecord, AuditLog
@@ -70,6 +71,8 @@ agent_platform/
 │
 ├── tests/                        # pytest tests
 ├── evals/                        # Benchmark harness
+│   ├── benchmark.py              # E2E API benchmark (requires running server)
+│   └── bench_components.py       # Component-level benchmarks (offline, no server needed)
 ├── deploy/                       # Docker Compose + Dockerfile
 ├── docs/                         # Architecture, ROI, marketing docs
 ├── scripts/                      # Entry scripts
@@ -165,6 +168,17 @@ Vector → Lexical → RRF Fusion → Cross-encoder Rerank → Context Pack. Do 
 ### 6. Cross-encoder and embedding models are lazy-loaded singletons
 `reranker.py` and `embeddings.py` load models on first call. This avoids startup cost if retrieval isn't needed. Do not pre-load in imports.
 
+`reranker.py` supports three backends/approaches:
+- **Pre-truncation** (`RERANK_MAX_CANDIDATES`, default 20): Only score top-N candidates from RRF, not all 50+. Linear latency reduction.
+- **ONNX Runtime** (`RERANK_BACKEND=onnx`): Auto-exports model to `data/onnx_reranker/`, uses ORT with full graph optimization. Outperforms Torch at C≥4.
+- **GPU offload** (`RERANK_DEVICE=cuda|xpu`): Optional path for environments with a **dedicated** GPU. **Do NOT use on this deployment** — all 8 Arc Pro B60s are fully committed to vLLM at tp=8. Adding the reranker there risks OOM and LLM latency spikes. ONNX/10 already exceeds retrieval throughput needs (19.3 q/s vs ~2k q/s capacity need).
+
+Benchmarked (Xeon 6, 12K corpus, 10 queries):
+- Torch/50 baseline: 1,653ms (C=1) → 1.1 q/s (C=32)
+- Torch/20 (default): 563ms (C=1) → 3.1 q/s (C=64), **2.5–2.9× speedup**
+- ONNX/10 (fastest CPU): 216ms (C=1) → 19.3 q/s (C=64), **7.7–16.8× speedup**
+- Top-1 ranking identical across all configs
+
 ### 7. Context packer enforces three constraints
 1. Deduplication: 90% text overlap → skip
 2. Source diversity: max 3 chunks per source_id
@@ -256,3 +270,36 @@ Rules:
 - 98% recall@20 has negligible downstream impact after cross-encoder reranking
 - Memory overhead: ~17% vs FlatIP (acceptable)
 - Always call `faiss.omp_set_num_threads(n_cpu)` before build/search for FlatIP parallelism
+
+### 25. Large-scale corpus: build_large_scale_index.py
+The demo corpus is 12,160 IT Ops documents (160 runbooks, 9,000 incidents, 3,000 how-tos), generated procedurally from template problems × systems. Fully deterministic from `seed=42`. No LLM or external data involved.
+To rebuild: `HF_HUB_OFFLINE=1 python3 -m connectors.build_large_scale_index`
+
+### 26. Benchmark harness: evals/bench_components.py
+Component-level benchmarks measuring FAISS, BM25, reranker, full retrieval pipeline, router, and simulated E2E at concurrency 1/4/16/32/64.
+To run: `HF_HUB_OFFLINE=1 python3 -m evals.bench_components --concurrency 1,4,16,32,64`
+Key findings (Xeon 6, 12K corpus):
+- FAISS HNSW: 18ms p50 @ C=1, 51ms p50 @ C=64
+- BM25: 31ms p50 @ C=1
+- Cross-encoder reranker: 563ms p50 torch/20 (was 1,653ms @ 50 cands), 216ms ONNX/10
+- Full retrieval pipeline: 2,244ms p50 @ C=1, peaks at 18.8 q/s @ C=16
+- Router rules: 0.022ms p50, 100% rule coverage on eval set
+- E2E fast tier: 5.4s, deep tier: 23.6–39.4s
+- Monthly capacity at GPU C=8: 1.46M queries, $0.00035/query
+
+### 27. ONNX export requires `attn_implementation="eager"`
+PyTorch 2.10+ defaults to SDPA attention which traces poorly to ONNX (5× regression).
+Always export with `attn_implementation="eager"` and `dynamo=False`.
+The exported model lives at `data/onnx_reranker/model.onnx` and is auto-generated on first use.
+Dependencies: `onnx`, `onnxruntime` (both already installed).
+
+### 28. Deep Research scenario benchmarks: evals/bench_deep_research.py
+Dedicated benchmark measuring retrieval quality + speed per Deep Research tier (fast/medium/deep).
+To run: `HF_HUB_OFFLINE=1 python3 -m evals.bench_deep_research`
+Key findings (Xeon 6, 12K corpus):
+- Fast tier: 556ms retrieval, 4.8s E2E modelled (88% LLM), top-1 score -10.42
+- Medium tier: 508ms retrieval, 10.1s E2E modelled (95% LLM), top-1 score -9.55
+- Deep tier: 710ms retrieval (initial) + 6.1s sub-agent retrieval (12 calls), 45.0s E2E modelled, top-1 score -7.79
+- Cross-tier: top-1 scores identical for same query across tiers; deep tier packs 40% more context chunks
+- Sub-agent dedup ratio: 11% mean — supervisor decomposition produces genuinely independent subtopics
+- Deep tier retrieval share: 15% of E2E (vs 85% LLM); main optimization path is LLM decode speed

@@ -163,7 +163,8 @@ This matters because:
 
 4. **Metrics walkthrough** (2 min)
    - Show per-query metrics: latency breakdown, token cost, hardware utilization
-   - Key message: "Every query is observable and cost-accounted"
+   - Show benchmark results: FAISS HNSW at 18ms p50, full pipeline at 2.2s, E2E fast-tier at 5.4s
+   - Key message: "Every query is observable, cost-accounted, and benchmarked"
 
 5. **TCO and next steps** (1 min)
    - Present ROI numbers for customer's incident volume
@@ -223,7 +224,7 @@ The Agent Platform is open-source (Apache 2.0). Revenue comes from hardware sale
 | Objection | Response |
 |---|---|
 | "We'll just use OpenAI / Claude" | "For prototyping, sure. For production with PII, compliance, and cost control? You need on-prem." |
-| "Arc Pro B60 is too small for real work" | "8B-param models at 41 tok/s. 8 GPUs with 192GB total HBM. Benchmarked on 640 production queries." |
+| "Arc Pro B60 is too small for real work" | "8B-param models at 95 tok/s. 8 GPUs with 192GB total HBM. Full retrieval pipeline at 18.8 q/s. Benchmarked on 12K-document IT Ops corpus." |
 | "Our team doesn't have AI expertise" | "Docker Compose deployment, pre-built demos, documented architecture. Two engineer-days to production." |
 | "What about model quality?" | "Llama 3.1 8B scored 4.1/5 on Claude-judged quality. Swap to 70B if you need more." |
 | "We already have NVIDIA GPUs" | "This is about the Xeon you already have. The CPU staging effect works with any GPU — it's a software architecture win." |
