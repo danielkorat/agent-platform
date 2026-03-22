@@ -1,4 +1,230 @@
-<!DOCTYPE html>
+#!/usr/bin/env python3
+"""Split docs/index.html into per-topic HTML files and generate a new homepage."""
+import re
+from pathlib import Path
+
+SRC = Path(__file__).parent.parent / "docs" / "index.html"
+OUT = Path(__file__).parent.parent / "docs"
+
+raw = SRC.read_text()
+
+# ── Extract shared pieces ────────────────────────────────────────────────────
+
+# Full <style>...</style> block
+style_match = re.search(r'(<style>.*?</style>)', raw, re.DOTALL)
+SHARED_CSS = style_match.group(1)
+
+# Logo SVG block (sidebar header)
+LOGO_SVG = '''      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="6" fill="#0068b5"/>
+        <path d="M7 10h4v12H7zm7-3h4v18h-4zm7 5h4v8h-4z" fill="white"/>
+      </svg>'''
+
+SCROLLSPY_SCRIPT = '''<script>
+  // Scrollspy — highlight active sidebar link
+  const links = document.querySelectorAll('nav a');
+  const anchors = Array.from(document.querySelectorAll('.anchor')).filter(a => a.id);
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const match = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (match) match.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+
+  anchors.forEach(a => observer.observe(a));
+</script>'''
+
+# ── Extract section bodies ───────────────────────────────────────────────────
+
+def extract_section(html: str, start_comment: str, end_comment: str) -> str:
+    start = html.find(start_comment)
+    end = html.find(end_comment)
+    if start == -1 or end == -1:
+        raise ValueError(f"Could not find markers: {start_comment!r} / {end_comment!r}")
+    # Include from the <div class="doc-section"> that follows the comment
+    return html[start:end + len(end_comment)].strip()
+
+# Section boundaries
+arch_body = extract_section(
+    raw,
+    '<!-- ══════════════════════════════════════════════════════════\n       SECTION 1 — ARCHITECTURE',
+    '</div><!-- /doc-section architecture -->'
+)
+
+mkt_body = extract_section(
+    raw,
+    '<!-- ══════════════════════════════════════════════════════════\n       SECTION 2 — MARKETING',
+    '</div><!-- /doc-section marketing -->'
+)
+
+roi_body = extract_section(
+    raw,
+    '<!-- ══════════════════════════════════════════════════════════\n       SECTION 3 — ROI',
+    '</div><!-- /doc-section roi -->'
+)
+
+# Benchmarks: 4 sub-sections (4a through 4d)
+bench_start = raw.find('<!-- ══════════════════════════════════════════════════════════\n       SECTION 4 — BENCHMARKS')
+bench_end   = raw.find('</div><!-- /doc-section cross-scenario -->') + len('</div><!-- /doc-section cross-scenario -->')
+bench_body  = raw[bench_start:bench_end].strip()
+
+# Fix stale values still in benchmarks cross-scenario section
+bench_body = bench_body.replace(
+    '<div style="font-size:2.4rem;font-weight:800;margin:8px 0;">$0.000309</div>',
+    '<div style="font-size:2.4rem;font-weight:800;margin:8px 0;">$0.000256</div>'
+)
+bench_body = bench_body.replace(
+    '$0.000309/query at capacity',
+    '$0.000256/query at capacity'
+)
+bench_body = bench_body.replace(
+    'Break-even at 82 IT incidents/month — any mid-size enterprise qualifies',
+    'Break-even at 68 IT incidents/month — any mid-size enterprise qualifies'
+)
+
+# ── Page builder ─────────────────────────────────────────────────────────────
+
+PAGES = {
+    'architecture': 'Architecture',
+    'marketing':    'Marketing Strategy',
+    'roi':          'ROI &amp; TCO',
+    'benchmarks':   'Benchmarks &amp; Analysis',
+}
+
+def cross_nav(current: str) -> str:
+    lines = ['    <div class="nav-section">Docs</div>']
+    lines.append('    <a class="section-link" href="index.html">&#8962; Home</a>')
+    for key, label in PAGES.items():
+        cls = ' class="section-link active"' if key == current else ' class="section-link"'
+        lines.append(f'    <a{cls} href="{key}.html">{label}</a>')
+    return '\n'.join(lines)
+
+def page_nav(key: str) -> str:
+    navs = {
+        'architecture': '''\n    <div class="nav-section">Architecture</div>
+    <a href="#arch-overview">System Overview</a>
+    <a href="#arch-principles">Design Principles</a>
+    <a href="#arch-flow">Execution Flow</a>
+    <a href="#arch-hw">Hardware Mapping</a>
+    <a href="#arch-langgraph">LangGraph Design</a>
+    <a href="#arch-security">Security Architecture</a>
+    <a href="#arch-retrieval">Retrieval Architecture</a>
+    <a href="#arch-deployment">Deployment Architecture</a>''',
+
+        'marketing': '''\n    <div class="nav-section">Marketing</div>
+    <a href="#mkt-positioning">Positioning</a>
+    <a href="#mkt-segments">Target Segments</a>
+    <a href="#mkt-messages">Key Messages</a>
+    <a href="#mkt-competitive">Competitive Positioning</a>
+    <a href="#mkt-demo">Demo Strategy</a>
+    <a href="#mkt-pricing">Pricing Guidance</a>
+    <a href="#mkt-objections">Objection Handling</a>''',
+
+        'roi': '''\n    <div class="nav-section">ROI &amp; TCO</div>
+    <a href="#roi-summary">Executive Summary</a>
+    <a href="#roi-cost">Cost Model</a>
+    <a href="#roi-itops">IT Ops Value Model</a>
+    <a href="#roi-research">Research Value Model</a>
+    <a href="#roi-combined">Combined ROI</a>
+    <a href="#roi-hetero">Heterogeneous vs GPU-Only</a>
+    <a href="#roi-nvidia-equiv">NVIDIA Equivalency</a>
+    <a href="#roi-sensitivity">Sensitivity Analysis</a>
+    <a href="#roi-template">TCO Template</a>''',
+
+        'benchmarks': '''\n    <div class="nav-section">Benchmarks</div>
+    <a href="#bench-overview">Overview</a>
+    <a href="#bench-infra">Shared Infrastructure</a>
+    <a href="#bench-concurrency">Concurrency Scaling</a>
+    <a href="#bench-nvidia-compare">vs. NVIDIA GPU Tiers</a>
+
+    <div class="nav-section">IT Ops Scenario</div>
+    <a href="#itops-summary">Summary</a>
+    <a href="#itops-e2e">E2E Waterfall</a>
+    <a href="#itops-nodes">Node Breakdown</a>
+    <a href="#itops-quality">Quality Metrics</a>
+
+    <div class="nav-section">Deep Research Scenario</div>
+    <a href="#dr-summary">Summary</a>
+    <a href="#dr-e2e">E2E Waterfall</a>
+    <a href="#dr-nodes">Node Breakdown</a>
+    <a href="#dr-quality">Quality Metrics</a>
+    <a href="#dr-subagent">Sub-Agent Detail</a>
+
+    <div class="nav-section">Cross-Scenario</div>
+    <a href="#cross-compare">Comparison</a>
+    <a href="#bench-tco">TCO at Scale</a>
+    <a href="#bench-conclusions">Conclusions</a>''',
+    }
+    return navs[key]
+
+SECTION_BODIES = {
+    'architecture': arch_body,
+    'marketing':    mkt_body,
+    'roi':          roi_body,
+    'benchmarks':   bench_body,
+}
+
+TITLES = {
+    'architecture': 'Architecture',
+    'marketing':    'Marketing Strategy',
+    'roi':          'ROI &amp; TCO',
+    'benchmarks':   'Benchmarks &amp; Analysis',
+}
+
+def build_page(key: str) -> str:
+    title = TITLES[key]
+    body  = SECTION_BODIES[key]
+    return f'''<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Platform — {title}</title>
+  {SHARED_CSS}
+</head>
+<body>
+
+<!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <a class="sidebar-logo" href="index.html" style="text-decoration:none;">
+{LOGO_SVG}
+      <div>
+        <div class="sidebar-title">Agent Platform</div>
+        <div class="sidebar-subtitle">Documentation</div>
+      </div>
+    </a>
+  </div>
+
+  <nav>
+{cross_nav(key)}
+{page_nav(key)}
+  </nav>
+</aside>
+
+<!-- ═══════════════════════ MAIN ═══════════════════════════ -->
+<main id="content">
+
+  {body}
+
+</main>
+
+{SCROLLSPY_SCRIPT}
+</body>
+</html>'''
+
+# ── Write the 4 doc pages ─────────────────────────────────────────────────────
+for key in PAGES:
+    path = OUT / f"{key}.html"
+    path.write_text(build_page(key))
+    print(f"  wrote {path} ({path.stat().st_size:,} bytes)")
+
+# ── New homepage (index.html) ────────────────────────────────────────────────
+HOMEPAGE = '''<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -433,4 +659,10 @@
 </footer>
 
 </body>
-</html>
+</html>'''
+
+homepage = OUT / "index.html"
+homepage.write_text(HOMEPAGE)
+print(f"  wrote {homepage} ({homepage.stat().st_size:,} bytes)")
+
+print("Done.")

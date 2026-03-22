@@ -4,7 +4,7 @@
 
 The Agent Platform produces measurable ROI across two enterprise scenarios: **IT Operations** and **Deep Research**. This document provides a generic ROI framework grounded in industry benchmarks and first-principles cost analysis.
 
-> **Key finding**: The platform achieves **138:1 ROI** on IT Ops alone when deployed on Intel Xeon + Arc Pro B60, primarily through engineer time savings and escalation reduction.
+> **Key finding**: The platform achieves **102:1 ROI** on IT Ops alone when deployed on Intel Xeon + Arc Pro B60, primarily through engineer time savings and escalation reduction.
 
 ---
 
@@ -14,12 +14,12 @@ The Agent Platform produces measurable ROI across two enterprise scenarios: **IT
 
 | Component | Unit Cost | Quantity | Amortized Monthly | Notes |
 |---|---|---|---|---|
-| Intel Arc Pro B60 GPU | $900 (street) | 8 | $200 | 36-month amortization |
+| Intel Arc Pro B60 GPU | $500 (launch price) | 8 | $111 | 36-month amortization |
 | Intel Xeon 6 server | $0 incremental | 1 | $0 | Already deployed in enterprise |
 | Power consumption | $0.10/kWh | 400W × 730h | $29 | GPU + CPU combined |
 | Rack space | $0 incremental | - | $0 | Shared with existing infra |
 | Software licenses | $0 | - | $0 | All open-source stack |
-| **Total monthly infra** | | | **$229** | |
+| **Total monthly infra** | | | **$140** | |
 
 **Why Xeon is $0**: Enterprise data centers already have Xeon servers for their workloads. The Agent Platform runs alongside existing applications. The GPU cards are the only incremental hardware.
 
@@ -35,10 +35,10 @@ The Agent Platform produces measurable ROI across two enterprise scenarios: **IT
 ### Total Monthly Cost
 
 ```
-Infrastructure:  $229
+Infrastructure:  $140
 Operations:      $283
 ─────────────────────
-Total:           $512/month
+Total:           $423/month
 ```
 
 ---
@@ -77,9 +77,9 @@ Saved:   $5,000/month
 
 | Scenario | Time Savings | Escalation Savings | Total Savings | ROI |
 |---|---|---|---|---|
-| **Conservative** (500/mo) | $6,225 | $5,000 | $11,225 | **21:1** |
-| **Moderate** (1,000/mo) | $18,750 | $25,000 | $43,750 | **84:1** |
-| **Aggressive** (2,000/mo) | $62,500 | $60,000 | $122,500 | **238:1** |
+| **Conservative** (500/mo) | $6,225 | $5,000 | $11,225 | **26:1** |
+| **Moderate** (1,000/mo) | $18,750 | $25,000 | $43,750 | **102:1** |
+| **Aggressive** (2,000/mo) | $62,500 | $60,000 | $122,500 | **289:1** |
 
 _ROI = (Total Monthly Savings - Total Monthly Cost) / Total Monthly Cost_
 
@@ -107,9 +107,9 @@ _ROI = (Total Monthly Savings - Total Monthly Cost) / Total Monthly Cost_
 
 | Scenario | Hours Saved | Cost Saved | ROI |
 |---|---|---|---|
-| **Conservative** (20/mo) | 60 hrs | $6,000 | **11:1** |
-| **Moderate** (50/mo) | 250 hrs | $25,000 | **48:1** |
-| **Aggressive** (100/mo) | 700 hrs | $70,000 | **136:1** |
+| **Conservative** (20/mo) | 60 hrs | $6,000 | **13:1** |
+| **Moderate** (50/mo) | 250 hrs | $25,000 | **58:1** |
+| **Aggressive** (100/mo) | 700 hrs | $70,000 | **164:1** |
 
 ### Quality Improvements (Not Quantified)
 
@@ -128,11 +128,11 @@ Using the moderate scenario for both IT Ops and Research:
 IT Ops savings:      $43,750/month
 Research savings:    $25,000/month
 Total savings:       $68,750/month
-Total cost:             $512/month
+Total cost:             $423/month
 ─────────────────────────────────
-Net value:           $68,238/month
-ROI:                     133:1
-Annual net value:    $818,856
+Net value:           $68,327/month
+ROI:                     162:1
+Annual net value:    $819,924
 Payback period:      < 1 month
 ```
 
@@ -183,23 +183,23 @@ The cost advantage grows with scale because the heterogeneous configuration need
 
 | Variable | -50% Change | Impact on ROI |
 |---|---|---|
-| Incident volume | 500 → 250/month | ROI drops from 84:1 to 40:1 (still excellent) |
-| Engineer cost rate | $75 → $37.50/hr | ROI drops from 84:1 to 40:1 (still excellent) |
-| Time savings per incident | 15 min → 7.5 min | ROI drops from 84:1 to 40:1 (still excellent) |
-| GPU cost | $900 → $1,800 | ROI drops from 84:1 to 76:1 (minimal impact) |
+| Incident volume | 500 → 250/month | ROI drops from 102:1 to 39:1 (still excellent) |
+| Engineer cost rate | $75 → $37.50/hr | ROI drops from 102:1 to 80:1 (still excellent) |
+| Time savings per incident | 15 min → 7.5 min | ROI drops from 102:1 to 80:1 (still excellent) |
+| GPU cost | $500 → $1,000 | ROI drops from 102:1 to 81:1 (minimal impact) |
 
 **Key insight**: ROI remains strongly positive (>20:1) even with the most pessimistic assumptions. Infrastructure cost is <1% of the value generated, so hardware price fluctuations have negligible impact.
 
 ### Break-Even Analysis
 
 ```
-Monthly cost:       $512
+Monthly cost:       $423
 Hourly savings:     $75 (one engineer hour)
 
-Break-even:         512 / 75 = 6.8 engineer hours saved per month
-At 5 min saved/incident: 82 incidents per month
+Break-even:         423 / 75 = 5.6 engineer hours saved per month
+At 5 min saved/incident: 68 incidents per month
 
-→ Any organization with >82 incidents/month breaks even.
+→ Any organization with >68 incidents/month breaks even.
 ```
 
 ---
@@ -283,7 +283,7 @@ All numbers below are from real component benchmarks on the production Xeon 6 se
 ### Monthly Capacity
 
 At GPU concurrency=8 (pipeline batching with prefix caching):
-- **1.46 million queries/month** at $0.00035/query
+- **1.46 million queries/month** at $0.000290/query
 - Equivalent to processing **2,000 incidents/hour** at the fast tier
 - Even deep-tier queries cost only $0.013 each — ~1,200× cheaper than equivalent GPT-4o API calls
 
@@ -300,10 +300,10 @@ At GPU concurrency=8 (pipeline batching with prefix caching):
 
 ## Summary
 
-The Agent Platform ROI is driven by **engineer time savings**, not infrastructure cost reduction. The infrastructure cost ($512/month) is negligible compared to the value generated ($43,750+/month on IT Ops alone).
+The Agent Platform ROI is driven by **engineer time savings**, not infrastructure cost reduction. The infrastructure cost ($423/month) is negligible compared to the value generated ($43,750+/month on IT Ops alone).
 
 Heterogeneous deployment (Xeon + Arc Pro B60) provides a **31% cost-per-query advantage** over GPU-only at production scale, primarily through the pipeline staging effect that prevents GPU KV-cache saturation.
 
-Benchmarked per-query costs range from **$0.0018** (IT Ops fast) to **$0.0128** (Deep Research deep), with a monthly capacity of **1.46M queries** at $512/month infrastructure.
+Benchmarked per-query costs range from **$0.0018** (IT Ops fast) to **$0.0128** (Deep Research deep), with a monthly capacity of **1.46M queries** at $423/month infrastructure.
 
-**Bottom line**: If your organization handles >82 IT incidents per month, the platform pays for itself. Everything above that is pure ROI.
+**Bottom line**: If your organization handles >68 IT incidents per month, the platform pays for itself. Everything above that is pure ROI.

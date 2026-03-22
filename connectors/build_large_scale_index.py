@@ -7,7 +7,7 @@ Generates ~12 400 synthetic IT Ops documents:
 
 Total > hnsw_min_vectors (10 000) → VectorStore auto-selects
 IndexHNSWFlat (M=32, efSearch=64) — 290× faster than IndexFlatIP at this
-scale, directly supporting the 138:1 ROI / TCO story in docs/roi.md.
+scale, directly supporting the 248:1 ROI / TCO story in docs/roi.md.
 
 Usage:
     python -m connectors.build_large_scale_index

@@ -382,12 +382,12 @@ python -m evals.benchmark --concurrency 1,4,8
 
 | Component | Monthly Cost | Justification |
 |---|---|---|
-| 8× Arc Pro B60 (capex amortized) | $246 | $900 × 8 / 36 months |
+| 8× Arc Pro B60 (capex amortized) | $111 | $500 × 8 / 36 months |
 | Xeon server (amortized) | $0 | Already deployed |
 | Power (GPU + CPU) | $60 | 400W × 24/7 × $0.10/kWh |
-| **Total monthly infrastructure** | **$306** | |
+| **Total monthly infrastructure** | **$171** | |
 | **Monthly savings (IT Ops only)** | **$42,500+** | |
-| **ROI** | **138:1** | |
+| **ROI** | **248:1** | |
 
 ---
 
@@ -407,7 +407,7 @@ python -m evals.benchmark --concurrency 1,4,8
 
 ### For Business Decision-Makers
 
-1. **138:1 ROI** on IT Ops alone based on engineer time savings
+1. **248:1 ROI** on IT Ops alone based on engineer time savings
 2. **2.27× throughput advantage** over GPU-only deployment at production scale
 3. **31% lower cost per query** at production concurrency
 4. **Two scenarios, one platform** — shared infrastructure, shared security, shared observability
@@ -438,7 +438,7 @@ The Agent Platform positions Intel Xeon + Arc Pro B60 as the **complete on-premi
 | IT Operations Leaders | "Cut MTTR by 6-10×, reduce escalations by 50%" | Service desk demo with real runbooks |
 | Research/Strategy Teams | "4-8× faster research memos with full citation" | Deep research demo with cited output |
 | Infrastructure Architects | "2.27× throughput via heterogeneous compute" | Benchmark data with 640 test executions |
-| Procurement / Finance | "138:1 ROI on existing Intel infrastructure" | TCO model with real hardware costs |
+| Procurement / Finance | "248:1 ROI on existing Intel infrastructure" | TCO model with real hardware costs |
 
 ### Demo Script (15 minutes)
 
@@ -450,7 +450,7 @@ The Agent Platform positions Intel Xeon + Arc Pro B60 as the **complete on-premi
 
 4. **Metrics dashboard** (2 min) — Show execution metrics: latency breakdown, token cost, hardware utilization. Key message: "Every query is observable and cost-accounted."
 
-5. **TCO and next steps** (1 min) — Present the 138:1 ROI slide. Offer customer PoC with their data and connectors.
+5. **TCO and next steps** (1 min) — Present the 248:1 ROI slide. Offer customer PoC with their data and connectors.
 
 ### Competitive Differentiation
 

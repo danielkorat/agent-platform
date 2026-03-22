@@ -409,8 +409,8 @@ _TIER_PROFILES = {
     },
 }
 
-# Monthly infra cost from ROI doc: $512/month
-_MONTHLY_COST_USD = 512.0
+# Monthly infra cost from ROI doc: $423/month
+_MONTHLY_COST_USD = 423.0
 _SECONDS_PER_MONTH = 30.44 * 24 * 3600  # average month
 
 

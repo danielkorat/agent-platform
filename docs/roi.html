@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Platform — ROI &amp; TCO</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --intel-blue:    #0068b5;
+      --intel-dark:    #00377b;
+      --intel-light:   #d6eaf8;
+      --accent:        #00c7fd;
+      --bg:            #f4f7fb;
+      --sidebar-bg:    #0b1e3d;
+      --sidebar-width: 260px;
+      --text:          #1a1a2e;
+      --muted:         #5a6a7a;
+      --border:        #dce5ef;
+      --code-bg:       #0d1117;
+      --code-text:     #e6edf3;
+      --table-head:    #eaf2fb;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ──────────────────────────────────────────────────── */
+    #sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--sidebar-width);
+      height: 100vh;
+      background: var(--sidebar-bg);
+      color: #c9d8f0;
+      overflow-y: auto;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      padding: 24px 20px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .sidebar-logo svg { flex-shrink: 0; }
+
+    .sidebar-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      line-height: 1.3;
+    }
+
+    .sidebar-subtitle {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: 2px;
+    }
+
+    nav { padding: 12px 0 24px; flex: 1; }
+
+    .nav-section {
+      padding: 16px 20px 4px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+
+    nav a {
+      display: block;
+      padding: 7px 20px 7px 28px;
+      font-size: 0.82rem;
+      color: #a8c0e0;
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+      line-height: 1.4;
+    }
+
+    nav a:hover, nav a.active {
+      color: #fff;
+      background: rgba(255,255,255,0.06);
+      border-left-color: var(--accent);
+    }
+
+    nav a.section-link {
+      padding-left: 20px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: #d0e4f7;
+    }
+
+    nav a.section-link:hover, nav a.section-link.active {
+      color: #fff;
+      border-left-color: var(--accent);
+    }
+
+    /* ── Main Content ─────────────────────────────────────────────── */
+    #content {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      max-width: 960px;
+      padding: 48px 56px 80px;
+    }
+
+    /* ── Section Dividers ─────────────────────────────────────────── */
+    .doc-section {
+      margin-bottom: 80px;
+    }
+
+    .doc-section-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--intel-blue);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+
+    /* ── Typography ───────────────────────────────────────────────── */
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--intel-dark);
+      line-height: 1.2;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 3px solid var(--intel-blue);
+    }
+
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--intel-dark);
+      margin: 40px 0 14px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--intel-blue);
+      margin: 28px 0 10px;
+    }
+
+    h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      margin: 18px 0 8px;
+    }
+
+    p {
+      line-height: 1.75;
+      margin-bottom: 14px;
+      color: #2c3e50;
+    }
+
+    strong { color: var(--intel-dark); }
+
+    ul, ol {
+      padding-left: 22px;
+      margin-bottom: 14px;
+    }
+
+    li {
+      line-height: 1.7;
+      margin-bottom: 4px;
+      color: #2c3e50;
+    }
+
+    a { color: var(--intel-blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 36px 0;
+    }
+
+    blockquote {
+      border-left: 4px solid var(--intel-blue);
+      background: var(--intel-light);
+      padding: 14px 20px;
+      margin: 20px 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    blockquote p { margin: 0; color: var(--intel-dark); font-style: italic; }
+
+    /* ── Code ─────────────────────────────────────────────────────── */
+    code {
+      font-family: "SF Mono", "Fira Code", Consolas, monospace;
+      font-size: 0.85em;
+      background: #eaf0f8;
+      color: #c0392b;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 20px;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      border: 1px solid #30363d;
+    }
+
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      font-size: inherit;
+    }
+
+    /* ── Tables ───────────────────────────────────────────────────── */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 16px 0 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    thead tr {
+      background: var(--table-head);
+    }
+
+    th {
+      padding: 11px 16px;
+      text-align: left;
+      font-weight: 700;
+      color: var(--intel-dark);
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: #f0f6fc; }
+
+    /* ── Key Metric Cards ─────────────────────────────────────────── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+
+    .kpi-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--intel-blue);
+      border-radius: 8px;
+      padding: 18px 20px;
+      text-align: center;
+    }
+
+    .kpi-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--intel-blue);
+      line-height: 1;
+    }
+
+    .kpi-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Scrollspy active ─────────────────────────────────────────── */
+    .anchor { display: block; position: relative; top: -80px; visibility: hidden; }
+
+    /* ── Execution Flow Diagram ───────────────────────────────────── */
+    .exec-flow { margin: 20px 0; }
+    .flow-chain { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; padding: 12px 0; }
+    .flow-node { background: var(--intel-blue); color: #fff; padding: 7px 13px; border-radius: 6px; font-size: 0.79rem; font-weight: 600; white-space: nowrap; }
+    .flow-node.cpu { background: #1a6fa3; }
+    .flow-arrow { color: var(--muted); font-size: 1rem; padding: 0 2px; flex-shrink: 0; }
+    .flow-down { text-align: center; padding: 6px 0 2px; font-size: 0.7rem; font-weight: 700; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; }
+    .flow-down-line { width: 2px; height: 18px; background: var(--border); margin: 2px auto 6px; }
+    .tier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 0 0 4px; }
+    .tier-card { border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+    .tier-card .tier-header { padding: 9px 14px; font-size: 0.78rem; font-weight: 700; color: #fff; text-align: center; letter-spacing: 0.04em; text-transform: uppercase; }
+    .tier-card.fast .tier-header { background: #27ae60; }
+    .tier-card.medium .tier-header { background: var(--intel-blue); }
+    .tier-card.deep .tier-header { background: #8e44ad; }
+    .tier-card .tier-body { background: #fff; padding: 10px 12px; }
+    .tier-step { display: flex; align-items: flex-start; gap: 7px; font-size: 0.77rem; color: #2c3e50; padding: 4px 0; border-bottom: 1px solid #f0f4f8; line-height: 1.4; }
+    .tier-step:last-child { border-bottom: none; }
+    .tier-step-num { color: var(--intel-blue); font-weight: 700; flex-shrink: 0; font-size: 0.68rem; margin-top: 2px; width: 14px; }
+
+    /* ── Hardware Cards ───────────────────────────────────────────── */
+    .hw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+    .hw-card { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+    .hw-card .hw-header { padding: 13px 18px; font-size: 0.84rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .hw-card.hw-cpu .hw-header { background: #1a6fa3; }
+    .hw-card.hw-gpu .hw-header { background: #0b3d91; }
+    .hw-body { background: #fff; padding: 14px 18px; }
+    .hw-row { display: flex; gap: 8px; padding: 5px 0; border-bottom: 1px solid #f0f4f8; font-size: 0.79rem; line-height: 1.4; }
+    .hw-row:last-child { border-bottom: none; }
+    .hw-label { color: var(--muted); font-weight: 600; flex-shrink: 0; width: 108px; font-size: 0.74rem; padding-top: 1px; }
+    .hw-value { color: #2c3e50; }
+    .hw-note { margin-top: 10px; padding: 8px 12px; background: var(--intel-light); border-radius: 6px; font-size: 0.74rem; color: var(--intel-dark); font-style: italic; line-height: 1.5; }
+
+    /* ── Pipeline Staging Comparison ─────────────────────────────── */
+    .staging-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+    .staging-card { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+    .staging-card .staging-header { padding: 10px 16px; font-size: 0.8rem; font-weight: 700; color: #fff; text-align: center; }
+    .staging-card.bad .staging-header { background: #c0392b; }
+    .staging-card.good .staging-header { background: #27ae60; }
+    .staging-body { background: #fff; padding: 14px 16px; }
+    .staging-desc { font-size: 0.74rem; color: var(--muted); margin-bottom: 10px; }
+    .staging-requests { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+    .req-dot { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.58rem; font-weight: 700; color: #fff; }
+    .req-dot.gpu { background: #e74c3c; }
+    .req-dot.cpu { background: #2980b9; }
+    .req-dot.queued { background: #bdc3c7; color: #7f8c8d; }
+    .staging-legend { display: flex; gap: 14px; margin-bottom: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.7rem; color: var(--muted); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .staging-outcome { border-radius: 6px; padding: 8px 12px; font-size: 0.76rem; font-weight: 600; }
+    .staging-outcome.bad { color: #c0392b; background: #fdf2f0; }
+    .staging-outcome.good { color: #27ae60; background: #f0fdf4; }
+
+    /* ── Security Pipeline Stack ──────────────────────────────────── */
+    .security-stack { display: flex; flex-direction: column; margin: 20px 0; max-width: 580px; }
+    .sec-layer { display: flex; align-items: center; gap: 14px; }
+    .sec-box { flex: 0 0 260px; padding: 11px 18px; font-size: 0.82rem; font-weight: 600; color: #fff; border-radius: 6px; }
+    .sec-note { font-size: 0.74rem; color: var(--muted); font-style: italic; }
+    .sec-connector { padding-left: 22px; line-height: 1; color: #c0d0e0; font-size: 1.1rem; height: 14px; display: flex; align-items: center; }
+
+    /* ── Deployment Diagram ───────────────────────────────────────── */
+    .deploy-wrap { background: #fff; border: 2px solid var(--border); border-radius: 12px; padding: 24px; margin: 20px 0; max-width: 480px; }
+    .deploy-section-label { text-align: center; font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; }
+    .deploy-app-box { background: var(--intel-light); border: 2px solid var(--intel-blue); border-radius: 8px; padding: 12px 20px; text-align: center; margin-bottom: 6px; }
+    .deploy-app-name { font-weight: 700; color: var(--intel-dark); font-size: 0.9rem; }
+    .deploy-app-sub { font-size: 0.73rem; color: var(--muted); margin-top: 2px; }
+    .deploy-connectors { display: flex; justify-content: space-around; padding: 0 80px; margin-bottom: 2px; }
+    .deploy-line { display: flex; flex-direction: column; align-items: center; color: var(--intel-blue); font-size: 0.85rem; }
+    .deploy-line-bar { width: 2px; height: 16px; background: var(--intel-blue); }
+    .deploy-services { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .deploy-svc-box { background: #0b3d91; border-radius: 8px; padding: 12px 14px; color: #fff; }
+    .deploy-svc-name { font-weight: 700; font-size: 0.82rem; }
+    .deploy-svc-detail { font-size: 0.7rem; color: rgba(255,255,255,0.65); margin-top: 4px; line-height: 1.5; }
+
+    /* ── Financial Summary Cards ──────────────────────────────────── */
+    .fin-summary { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 18px 22px; margin: 16px 0; }
+    .fin-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #f0f4f8; font-size: 0.87rem; }
+    .fin-row:last-child { border-bottom: none; }
+    .fin-row.total { border-top: 2px solid var(--intel-blue); border-bottom: none; margin-top: 4px; padding-top: 10px; font-weight: 700; font-size: 0.93rem; color: var(--intel-dark); }
+    .fin-label { color: #2c3e50; }
+    .fin-value { font-weight: 600; color: var(--intel-blue); font-family: "SF Mono","Fira Code",Consolas,monospace; font-size: 0.85rem; }
+    .fin-row.total .fin-value { color: var(--intel-dark); }
+    .roi-callout { background: linear-gradient(135deg,var(--intel-dark),var(--intel-blue)); border-radius: 10px; padding: 20px 24px; margin: 16px 0; color: #fff; display: grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap: 16px; }
+    .roi-item { text-align: center; }
+    .roi-val { font-size: 1.9rem; font-weight: 800; color: var(--accent); line-height: 1; }
+    .roi-lbl { font-size: 0.7rem; color: rgba(255,255,255,0.65); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.07em; }
+    .breakeven-box { background: var(--intel-light); border-left: 4px solid var(--intel-blue); border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; }
+    .be-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 0.84rem; border-bottom: 1px dashed var(--border); }
+    .be-row:last-child { border-bottom: none; }
+    .be-label { color: var(--muted); }
+    .be-value { font-weight: 700; color: var(--intel-dark); font-family: "SF Mono","Fira Code",Consolas,monospace; }
+    .be-conclusion { margin-top: 12px; padding: 10px 14px; background: var(--intel-blue); color: #fff; border-radius: 6px; font-size: 0.82rem; font-weight: 600; text-align: center; }
+
+    /* ── TCO Form Template ────────────────────────────────────────── */
+    .tco-form { background: #fff; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 16px 0; }
+    .tco-section { padding: 14px 20px; border-bottom: 1px solid var(--border); }
+    .tco-section:last-child { border-bottom: none; }
+    .tco-section-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--intel-blue); margin-bottom: 10px; }
+    .tco-field { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 0.82rem; border-bottom: 1px dashed #eef2f7; }
+    .tco-field:last-child { border-bottom: none; }
+    .tco-field-label { color: #2c3e50; }
+    .tco-field-input { color: var(--muted); font-size: 0.78rem; font-style: italic; }
+
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <a class="sidebar-logo" href="index.html" style="text-decoration:none;">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="6" fill="#0068b5"/>
+        <path d="M7 10h4v12H7zm7-3h4v18h-4zm7 5h4v8h-4z" fill="white"/>
+      </svg>
+      <div>
+        <div class="sidebar-title">Agent Platform</div>
+        <div class="sidebar-subtitle">Documentation</div>
+      </div>
+    </a>
+  </div>
+
+  <nav>
+    <div class="nav-section">Docs</div>
+    <a class="section-link" href="index.html">&#8962; Home</a>
+    <a class="section-link" href="architecture.html">Architecture</a>
+    <a class="section-link" href="marketing.html">Marketing Strategy</a>
+    <a class="section-link active" href="roi.html">ROI &amp; TCO</a>
+    <a class="section-link" href="benchmarks.html">Benchmarks &amp; Analysis</a>
+
+    <div class="nav-section">ROI &amp; TCO</div>
+    <a href="#roi-summary">Executive Summary</a>
+    <a href="#roi-cost">Cost Model</a>
+    <a href="#roi-itops">IT Ops Value Model</a>
+    <a href="#roi-research">Research Value Model</a>
+    <a href="#roi-combined">Combined ROI</a>
+    <a href="#roi-hetero">Heterogeneous vs GPU-Only</a>
+    <a href="#roi-nvidia-equiv">NVIDIA Equivalency</a>
+    <a href="#roi-sensitivity">Sensitivity Analysis</a>
+    <a href="#roi-template">TCO Template</a>
+  </nav>
+</aside>
+
+<!-- ═══════════════════════ MAIN ═══════════════════════════ -->
+<main id="content">
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 3 — ROI
+  ══════════════════════════════════════════════════════════════ -->
+  <div class="doc-section">
+    <span class="doc-section-badge">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2.5A.5.5 0 012.5 2h11a.5.5 0 010 1h-11A.5.5 0 012 2.5zm0 4A.5.5 0 012.5 6h11a.5.5 0 010 1h-11A.5.5 0 012 6.5zm0 4a.5.5 0 01.5-.5h6a.5.5 0 010 1h-6a.5.5 0 01-.5-.5z"/></svg>
+      ROI &amp; TCO
+    </span>
+
+    <a class="anchor" id="roi-summary"></a>
+    <h1>ROI Analysis &amp; Total Cost of Ownership</h1>
+
+    <h2>Executive Summary</h2>
+    <p>The Agent Platform produces measurable ROI across two enterprise scenarios: <strong>IT Operations</strong> and <strong>Deep Research</strong>. This document provides a generic ROI framework grounded in industry benchmarks and first-principles cost analysis.</p>
+    <blockquote>
+      <p><strong>Key finding</strong>: The platform achieves <strong>102:1 ROI</strong> on IT Ops alone when deployed on Intel Xeon + Arc Pro B60, primarily through engineer time savings and escalation reduction.</p>
+    </blockquote>
+
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-value">$423</div><div class="kpi-label">Total Monthly Cost</div></div>
+      <div class="kpi-card"><div class="kpi-value">102:1</div><div class="kpi-label">IT Ops ROI</div></div>
+      <div class="kpi-card"><div class="kpi-value">&lt;1 mo</div><div class="kpi-label">Payback Period</div></div>
+      <div class="kpi-card"><div class="kpi-value">68</div><div class="kpi-label">Break-even Incidents/mo</div></div>
+    </div>
+
+    <a class="anchor" id="roi-cost"></a>
+    <h2>1. Cost Model</h2>
+
+    <h3>Infrastructure Costs (Monthly)</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Component</th><th>Unit Cost</th><th>Quantity</th><th>Amortized Monthly</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Intel Arc Pro B60 GPU</td><td>$500 (launch price)</td><td>8</td><td>$111</td><td>36-month amortization</td></tr>
+          <tr><td>Intel Xeon 6 server</td><td>$0 incremental</td><td>1</td><td>$0</td><td>Already deployed in enterprise</td></tr>
+          <tr><td>Power consumption</td><td>$0.10/kWh</td><td>400W × 730h</td><td>$29</td><td>GPU + CPU combined</td></tr>
+          <tr><td>Rack space</td><td>$0 incremental</td><td>—</td><td>$0</td><td>Shared with existing infra</td></tr>
+          <tr><td>Software licenses</td><td>$0</td><td>—</td><td>$0</td><td>All open-source stack</td></tr>
+          <tr><td><strong>Total monthly infra</strong></td><td></td><td></td><td><strong>$140</strong></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Operational Costs (Monthly)</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Component</th><th>Cost</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Setup (one-time, amortized)</td><td>$83</td><td>2 engineer-days × $1,500/day / 36 months</td></tr>
+          <tr><td>Maintenance</td><td>$150</td><td>2 hours/month × $75/hr</td></tr>
+          <tr><td>Model updates</td><td>$50</td><td>Quarterly model refresh</td></tr>
+          <tr><td><strong>Total monthly ops</strong></td><td><strong>$283</strong></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fin-summary">
+      <div class="fin-row"><span class="fin-label">Infrastructure</span><span class="fin-value">$140 / mo</span></div>
+      <div class="fin-row"><span class="fin-label">Operations</span><span class="fin-value">$283 / mo</span></div>
+      <div class="fin-row total"><span class="fin-label">Total Monthly Cost</span><span class="fin-value">$423 / mo</span></div>
+    </div>
+
+    <a class="anchor" id="roi-itops"></a>
+    <h2>2. IT Ops Value Model</h2>
+
+    <h3>Baseline Assumptions</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Parameter</th><th>Conservative</th><th>Moderate</th><th>Aggressive</th></tr></thead>
+        <tbody>
+          <tr><td>Incidents per month</td><td>500</td><td>1,000</td><td>2,000</td></tr>
+          <tr><td>Avg engineer time per incident (before)</td><td>15 min</td><td>20 min</td><td>30 min</td></tr>
+          <tr><td>Avg engineer time per incident (after)</td><td>5 min</td><td>5 min</td><td>5 min</td></tr>
+          <tr><td>Escalation rate (before)</td><td>40%</td><td>50%</td><td>60%</td></tr>
+          <tr><td>Escalation rate (after)</td><td>20%</td><td>20%</td><td>20%</td></tr>
+          <tr><td>Escalation cost premium</td><td>$50/ticket</td><td>$50/ticket</td><td>$50/ticket</td></tr>
+          <tr><td>Fully-loaded engineer cost</td><td>$75/hr</td><td>$75/hr</td><td>$75/hr</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fin-summary">
+      <div class="fin-row"><span class="fin-label">Time before &nbsp;(500 × 15 min)</span><span class="fin-value">125 hrs/mo</span></div>
+      <div class="fin-row"><span class="fin-label">Time after &nbsp;&nbsp;(500 × 5 min)</span><span class="fin-value">42 hrs/mo</span></div>
+      <div class="fin-row total"><span class="fin-label">Time savings → 83 hrs × $75/hr</span><span class="fin-value">$6,225/mo</span></div>
+      <div class="fin-row" style="padding-top:12px"><span class="fin-label">Escalations before &nbsp;(500 × 40% × $50)</span><span class="fin-value">$10,000/mo</span></div>
+      <div class="fin-row"><span class="fin-label">Escalations after &nbsp;&nbsp;(500 × 20% × $50)</span><span class="fin-value">$5,000/mo</span></div>
+      <div class="fin-row total"><span class="fin-label">Escalation savings</span><span class="fin-value">$5,000/mo</span></div>
+    </div>
+
+    <h3>IT Ops ROI Summary</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Scenario</th><th>Time Savings</th><th>Escalation Savings</th><th>Total Savings</th><th>ROI</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Conservative</strong> (500/mo)</td><td>$6,225</td><td>$5,000</td><td>$11,225</td><td><strong>26:1</strong></td></tr>
+          <tr><td><strong>Moderate</strong> (1,000/mo)</td><td>$18,750</td><td>$25,000</td><td>$43,750</td><td><strong>102:1</strong></td></tr>
+          <tr><td><strong>Aggressive</strong> (2,000/mo)</td><td>$62,500</td><td>$60,000</td><td>$122,500</td><td><strong>289:1</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <a class="anchor" id="roi-research"></a>
+    <h2>3. Deep Research Value Model</h2>
+
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Parameter</th><th>Conservative</th><th>Moderate</th><th>Aggressive</th></tr></thead>
+        <tbody>
+          <tr><td>Research tasks per month</td><td>20</td><td>50</td><td>100</td></tr>
+          <tr><td>Avg analyst time per task (before)</td><td>4 hours</td><td>6 hours</td><td>8 hours</td></tr>
+          <tr><td>Avg analyst time per task (after)</td><td>1 hour</td><td>1 hour</td><td>1 hour</td></tr>
+          <tr><td>Fully-loaded analyst cost</td><td>$100/hr</td><td>$100/hr</td><td>$100/hr</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Research ROI Summary</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Scenario</th><th>Hours Saved</th><th>Cost Saved</th><th>ROI</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Conservative</strong> (20/mo)</td><td>60 hrs</td><td>$6,000</td><td><strong>13:1</strong></td></tr>
+          <tr><td><strong>Moderate</strong> (50/mo)</td><td>250 hrs</td><td>$25,000</td><td><strong>58:1</strong></td></tr>
+          <tr><td><strong>Aggressive</strong> (100/mo)</td><td>700 hrs</td><td>$70,000</td><td><strong>164:1</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <a class="anchor" id="roi-combined"></a>
+    <h2>4. Combined ROI</h2>
+    <p>Using the moderate scenario for both IT Ops and Research:</p>
+
+    <div class="fin-summary">
+      <div class="fin-row"><span class="fin-label">IT Ops savings</span><span class="fin-value">$43,750/mo</span></div>
+      <div class="fin-row"><span class="fin-label">Research savings</span><span class="fin-value">$25,000/mo</span></div>
+      <div class="fin-row"><span class="fin-label">Total savings</span><span class="fin-value">$68,750/mo</span></div>
+      <div class="fin-row"><span class="fin-label">Total cost</span><span class="fin-value">$423/mo</span></div>
+      <div class="fin-row total"><span class="fin-label">Net monthly value</span><span class="fin-value">$68,327/mo</span></div>
+    </div>
+    <div class="roi-callout">
+      <div class="roi-item"><div class="roi-val">162:1</div><div class="roi-lbl">Combined ROI</div></div>
+      <div class="roi-item"><div class="roi-val">$820K</div><div class="roi-lbl">Annual Net Value</div></div>
+      <div class="roi-item"><div class="roi-val">&lt;1 mo</div><div class="roi-lbl">Payback Period</div></div>
+    </div>
+
+    <a class="anchor" id="roi-hetero"></a>
+    <h2>5. Heterogeneous vs. Homogeneous TCO</h2>
+
+    <h3>Throughput Comparison at Scale</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Configuration</th><th>Throughput @ c=1</th><th>Throughput @ c=32</th><th>Scaling Factor</th></tr></thead>
+        <tbody>
+          <tr><td>GPU-only</td><td>3.55 q/min</td><td>21.57 q/min</td><td>6.1×</td></tr>
+          <tr><td>Heterogeneous</td><td>3.71 q/min</td><td>48.97 q/min</td><td>13.2×</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Cost Per Query</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Configuration</th><th>Throughput @ c=32</th><th>HW Cost/Hour</th><th>Cost per Query</th></tr></thead>
+        <tbody>
+          <tr><td>GPU-only</td><td>21.57 q/min</td><td>$0.0523</td><td>$0.0000404</td></tr>
+          <tr><td>Heterogeneous</td><td>48.97 q/min</td><td>$0.0823</td><td>$0.0000280</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Heterogeneous costs 57% more per hour (CPU + GPU vs GPU alone) but delivers 2.27× more throughput, resulting in <strong>31% lower cost per query</strong>.</p>
+
+    <h3>Monthly Capacity Planning</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Scenario</th><th>GPU-Only</th><th>Heterogeneous</th><th>Advantage</th></tr></thead>
+        <tbody>
+          <tr><td>Monthly capacity @ c=32</td><td>56.9M queries</td><td>129.3M queries</td><td>2.27×</td></tr>
+          <tr><td>Hardware cost for 100M q/month</td><td>$91/month</td><td>$82/month</td><td>10% cheaper</td></tr>
+          <tr><td>Hardware cost for 200M q/month</td><td>$182/month</td><td>$123/month</td><td>32% cheaper</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <a class="anchor" id="roi-nvidia-equiv"></a>
+    <h2>5b. Cross-Platform: NVIDIA Equivalency for 192 GB VRAM</h2>
+    <p>To match the 8&times; Arc Pro B60&rsquo;s 192 GB total VRAM &mdash; required for 131K-token context windows at concurrent production scale &mdash; the following NVIDIA configurations are needed. GPU cost estimates are 2025&ndash;2026 street/list prices.</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>GPU Config</th><th>Total VRAM</th><th>GPU Cost (est.)</th><th>Total TDP</th><th>Decode Speed (C=1)</th><th>vs. B60 cost</th></tr></thead>
+        <tbody>
+          <tr style="background:#e3f2fd;">
+            <td><strong>8&times; Intel Arc Pro B60 &#9733;</strong></td>
+            <td>192 GB GDDR6</td>
+            <td><strong>~$4,000</strong></td>
+            <td>~960&ndash;1,600 W</td>
+            <td>~41 tok/s</td>
+            <td>baseline</td>
+          </tr>
+          <tr>
+            <td>8&times; NVIDIA RTX 4090 24 GB</td>
+            <td>192 GB GDDR6X</td>
+            <td>~$16,000</td>
+            <td>~3,600 W</td>
+            <td>~150&ndash;180 tok/s &dagger;</td>
+            <td style="color:#c62828;font-weight:700;">4&times; more expensive</td>
+          </tr>
+          <tr>
+            <td>4&times; NVIDIA L40S 48 GB</td>
+            <td>192 GB GDDR6</td>
+            <td>~$24,000&ndash;36,000</td>
+            <td>~1,400 W</td>
+            <td>~200&ndash;280 tok/s &dagger;</td>
+            <td style="color:#c62828;font-weight:700;">6&ndash;9&times; more expensive</td>
+          </tr>
+          <tr>
+            <td>3&times; NVIDIA A100 80 GB SXM</td>
+            <td>240 GB HBM2e</td>
+            <td>~$36,000&ndash;54,000</td>
+            <td>~1,200 W</td>
+            <td>~250&ndash;350 tok/s &dagger;</td>
+            <td style="color:#c62828;font-weight:700;">9&ndash;13&times; more expensive</td>
+          </tr>
+          <tr>
+            <td>2&times; NVIDIA H100 80 GB SXM</td>
+            <td>160 GB HBM3</td>
+            <td>~$50,000&ndash;70,000</td>
+            <td>~1,400 W</td>
+            <td>~350&ndash;460 tok/s &dagger;</td>
+            <td style="color:#c62828;font-weight:700;">12&ndash;17&times; more expensive</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.82rem;color:var(--muted);">&#9733; Measured on this platform. &dagger; Estimated from memory-bandwidth model and published multi-GPU benchmarks with tp=N; PCIe interconnect for RTX/L40S, NVLink for H100. NVIDIA numbers without enforce-eager (CUDA graphs enabled).</p>
+
+    <h3>Decode Throughput per Kilowatt (192 GB VRAM config)</h3>
+    <p>Power efficiency at VRAM parity &mdash; relevant for data-center power budgets and opex:</p>
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin:16px 0;font-size:.85rem;">
+      <!-- B60: 41/1.28kW = 32 tok/s/kW -->
+      <div style="display:flex;align-items:center;margin-bottom:10px;">
+        <div style="width:210px;text-align:right;padding-right:12px;color:var(--intel-blue);font-weight:600;font-size:.8rem;">8&times; Arc Pro B60</div>
+        <div style="background:#0068b5;height:24px;border-radius:4px;width:calc(32/130*50%);" title="~32 tok/s/kW"></div>
+        <span style="margin-left:8px;font-weight:700;color:#0068b5;">~32 tok/s/kW &#9733;</span>
+      </div>
+      <!-- 8× RTX 4090: 165/3.6kW = 46 -->
+      <div style="display:flex;align-items:center;margin-bottom:10px;">
+        <div style="width:210px;text-align:right;padding-right:12px;color:#5a8a00;font-weight:600;font-size:.8rem;">8&times; NVIDIA RTX 4090</div>
+        <div style="background:#76b900;height:24px;border-radius:4px;width:calc(46/130*50%);" title="~46 tok/s/kW"></div>
+        <span style="margin-left:8px;font-weight:700;color:#5a8a00;">~46 tok/s/kW</span>
+      </div>
+      <!-- 4× L40S: 240/1.4 = 86 -->
+      <div style="display:flex;align-items:center;margin-bottom:10px;">
+        <div style="width:210px;text-align:right;padding-right:12px;color:#2e7d32;font-weight:600;font-size:.8rem;">4&times; NVIDIA L40S</div>
+        <div style="background:#4caf50;height:24px;border-radius:4px;width:calc(86/130*50%);" title="~86 tok/s/kW"></div>
+        <span style="margin-left:8px;font-weight:700;color:#2e7d32;">~86&ndash;100 tok/s/kW</span>
+      </div>
+      <!-- 2× H100: 400/1.4 = 130 -->
+      <div style="display:flex;align-items:center;margin-bottom:10px;">
+        <div style="width:210px;text-align:right;padding-right:12px;color:#b71c1c;font-weight:600;font-size:.8rem;">2&times; NVIDIA H100 SXM</div>
+        <div style="background:#e53935;height:24px;border-radius:4px;width:calc(130/130*50%);" title="~130 tok/s/kW"></div>
+        <span style="margin-left:8px;font-weight:700;color:#b71c1c;">~130&ndash;160 tok/s/kW</span>
+      </div>
+      <div style="font-size:.75rem;color:var(--muted);margin-top:8px;border-top:1px solid var(--border);padding-top:8px;">&#9733; Measured. NVIDIA estimates from published GPU TDP specs and benchmark-derived throughput.</div>
+    </div>
+
+    <div style="background:#e3f2fd;border-left:4px solid #0068b5;border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;font-size:.9rem;">
+      <strong>Bottom line:</strong> For a <strong>$4,000 GPU budget</strong>, 8&times; Arc Pro B60 is the <em>only</em> configuration providing 192 GB VRAM for 131K-token context windows at concurrent scale. The nearest NVIDIA equivalent (8&times; RTX 4090) costs 4&times; more and draws 3&times; the power. The performance gap (&asymp;41 vs 160 tok/s decode) is real but partially architectural: the forced <code>--enforce-eager</code> flag (required for XPU) and PCIe 5 all-reduce latency together account for an estimated 2&ndash;3&times; of that gap. The heterogeneous CPU staging benefit (+2.27&times; throughput at c=32) is unique to this platform and unavailable on GPU-only configurations.
+    </div>
+
+    <a class="anchor" id="roi-sensitivity"></a>
+    <h2>6. Sensitivity Analysis</h2>
+
+    <h3>Key Variables and Impact</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Variable</th><th>−50% Change</th><th>Impact on ROI</th></tr></thead>
+        <tbody>
+          <tr><td>Incident volume</td><td>500 → 250/month</td><td>ROI drops from 102:1 to 39:1 (still excellent)</td></tr>
+          <tr><td>Engineer cost rate</td><td>$75 → $37.50/hr</td><td>ROI drops from 102:1 to 80:1 (still excellent)</td></tr>
+          <tr><td>Time savings per incident</td><td>15 min → 7.5 min</td><td>ROI drops from 102:1 to 80:1 (still excellent)</td></tr>
+          <tr><td>GPU cost</td><td>$500 → $1,000</td><td>ROI drops from 102:1 to 81:1 (minimal impact)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Break-Even Analysis</h3>
+
+    <div class="breakeven-box">
+      <div class="be-row"><span class="be-label">Monthly platform cost</span><span class="be-value">$423</span></div>
+      <div class="be-row"><span class="be-label">Value of one engineer-hour</span><span class="be-value">$75</span></div>
+      <div class="be-row"><span class="be-label">Hours needed to break even</span><span class="be-value">5.6 hrs/mo</span></div>
+      <div class="be-row"><span class="be-label">At 5 min saved per incident</span><span class="be-value">68 incidents/mo</span></div>
+      <div class="be-conclusion">Any organization with &gt;68 IT incidents/month breaks even immediately.</div>
+    </div>
+
+    <a class="anchor" id="roi-template"></a>
+    <h2>7. TCO Framework Template</h2>
+
+    <div class="tco-form">
+      <div class="tco-section">
+        <div class="tco-section-title">Infrastructure</div>
+        <div class="tco-field"><span class="tco-field-label">GPU count × unit price</span><span class="tco-field-input">___ × $___</span></div>
+        <div class="tco-field"><span class="tco-field-label">Amortization period</span><span class="tco-field-input">___ months</span></div>
+        <div class="tco-field"><span class="tco-field-label">Power rate</span><span class="tco-field-input">$___ / kWh</span></div>
+        <div class="tco-field"><span class="tco-field-label">GPU TDP</span><span class="tco-field-input">___ W</span></div>
+      </div>
+      <div class="tco-section">
+        <div class="tco-section-title">Operations</div>
+        <div class="tco-field"><span class="tco-field-label">Setup effort</span><span class="tco-field-input">___ engineer-days</span></div>
+        <div class="tco-field"><span class="tco-field-label">Maintenance</span><span class="tco-field-input">___ hours / month</span></div>
+        <div class="tco-field"><span class="tco-field-label">Engineer rate</span><span class="tco-field-input">$___ / hour</span></div>
+      </div>
+      <div class="tco-section">
+        <div class="tco-section-title">IT Ops Workload</div>
+        <div class="tco-field"><span class="tco-field-label">Incidents / month</span><span class="tco-field-input">___</span></div>
+        <div class="tco-field"><span class="tco-field-label">Avg triage time — before / after</span><span class="tco-field-input">___ / ___ minutes</span></div>
+        <div class="tco-field"><span class="tco-field-label">Escalation rate — before / after</span><span class="tco-field-input">___% / ___%</span></div>
+        <div class="tco-field"><span class="tco-field-label">Escalation cost per ticket</span><span class="tco-field-input">$___</span></div>
+      </div>
+      <div class="tco-section">
+        <div class="tco-section-title">Research Workload</div>
+        <div class="tco-field"><span class="tco-field-label">Research tasks / month</span><span class="tco-field-input">___</span></div>
+        <div class="tco-field"><span class="tco-field-label">Avg task time — before / after</span><span class="tco-field-input">___ / ___ hours</span></div>
+        <div class="tco-field"><span class="tco-field-label">Analyst rate</span><span class="tco-field-input">$___ / hour</span></div>
+      </div>
+    </div>
+
+    <h3>Calculation</h3>
+<pre>
+Monthly cost = (GPU_count × GPU_price / amort_months)
+             + (power_rate × GPU_TDP × GPU_count × 730 / 1000)
+             + (setup_days × eng_rate × 8 / amort_months)
+             + (maint_hours × eng_rate)
+
+IT savings   = incidents × (before - after) / 60 × eng_rate
+             + incidents × (esc_before - esc_after) / 100 × esc_cost
+
+Research savings = tasks × (before - after) × analyst_rate
+
+ROI = (IT savings + Research savings - Monthly cost) / Monthly cost
+</pre>
+
+    <h2>8. Risk Factors</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+        <tbody>
+          <tr><td>Model quality insufficient</td><td>Swap to larger model (70B) with more GPUs</td></tr>
+          <tr><td>Retrieval quality insufficient</td><td>Improve chunking, add metadata, tune reranker</td></tr>
+          <tr><td>Adoption rate low</td><td>Start with IT Ops (clearer win), expand to research</td></tr>
+          <tr><td>Hardware procurement delays</td><td>Start CPU-only (Qwen 3B handles all tiers at slower speed)</td></tr>
+          <tr><td>Data quality issues</td><td>Build corpus pipeline with validation and dedup</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Summary</h2>
+    <p>The Agent Platform ROI is driven by <strong>engineer time savings</strong>, not infrastructure cost reduction. The infrastructure cost ($423/month) is negligible compared to the value generated ($43,750+/month on IT Ops alone).</p>
+    <p>Heterogeneous deployment (Xeon + Arc Pro B60) provides a <strong>31% cost-per-query advantage</strong> over GPU-only at production scale, primarily through the pipeline staging effect that prevents GPU KV-cache saturation.</p>
+    <p><strong>Bottom line</strong>: If your organization handles &gt;68 IT incidents/month, the platform pays for itself. Everything above that is pure ROI.</p>
+
+  </div><!-- /doc-section roi -->
+
+</main>
+
+<script>
+  // Scrollspy — highlight active sidebar link
+  const links = document.querySelectorAll('nav a');
+  const anchors = Array.from(document.querySelectorAll('.anchor')).filter(a => a.id);
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const match = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (match) match.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+
+  anchors.forEach(a => observer.observe(a));
+</script>
+</body>
+</html>

@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Platform — Marketing Strategy</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --intel-blue:    #0068b5;
+      --intel-dark:    #00377b;
+      --intel-light:   #d6eaf8;
+      --accent:        #00c7fd;
+      --bg:            #f4f7fb;
+      --sidebar-bg:    #0b1e3d;
+      --sidebar-width: 260px;
+      --text:          #1a1a2e;
+      --muted:         #5a6a7a;
+      --border:        #dce5ef;
+      --code-bg:       #0d1117;
+      --code-text:     #e6edf3;
+      --table-head:    #eaf2fb;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ──────────────────────────────────────────────────── */
+    #sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--sidebar-width);
+      height: 100vh;
+      background: var(--sidebar-bg);
+      color: #c9d8f0;
+      overflow-y: auto;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      padding: 24px 20px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .sidebar-logo svg { flex-shrink: 0; }
+
+    .sidebar-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      line-height: 1.3;
+    }
+
+    .sidebar-subtitle {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: 2px;
+    }
+
+    nav { padding: 12px 0 24px; flex: 1; }
+
+    .nav-section {
+      padding: 16px 20px 4px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+
+    nav a {
+      display: block;
+      padding: 7px 20px 7px 28px;
+      font-size: 0.82rem;
+      color: #a8c0e0;
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+      line-height: 1.4;
+    }
+
+    nav a:hover, nav a.active {
+      color: #fff;
+      background: rgba(255,255,255,0.06);
+      border-left-color: var(--accent);
+    }
+
+    nav a.section-link {
+      padding-left: 20px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: #d0e4f7;
+    }
+
+    nav a.section-link:hover, nav a.section-link.active {
+      color: #fff;
+      border-left-color: var(--accent);
+    }
+
+    /* ── Main Content ─────────────────────────────────────────────── */
+    #content {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      max-width: 960px;
+      padding: 48px 56px 80px;
+    }
+
+    /* ── Section Dividers ─────────────────────────────────────────── */
+    .doc-section {
+      margin-bottom: 80px;
+    }
+
+    .doc-section-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--intel-blue);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+
+    /* ── Typography ───────────────────────────────────────────────── */
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--intel-dark);
+      line-height: 1.2;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 3px solid var(--intel-blue);
+    }
+
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--intel-dark);
+      margin: 40px 0 14px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--intel-blue);
+      margin: 28px 0 10px;
+    }
+
+    h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      margin: 18px 0 8px;
+    }
+
+    p {
+      line-height: 1.75;
+      margin-bottom: 14px;
+      color: #2c3e50;
+    }
+
+    strong { color: var(--intel-dark); }
+
+    ul, ol {
+      padding-left: 22px;
+      margin-bottom: 14px;
+    }
+
+    li {
+      line-height: 1.7;
+      margin-bottom: 4px;
+      color: #2c3e50;
+    }
+
+    a { color: var(--intel-blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 36px 0;
+    }
+
+    blockquote {
+      border-left: 4px solid var(--intel-blue);
+      background: var(--intel-light);
+      padding: 14px 20px;
+      margin: 20px 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    blockquote p { margin: 0; color: var(--intel-dark); font-style: italic; }
+
+    /* ── Code ─────────────────────────────────────────────────────── */
+    code {
+      font-family: "SF Mono", "Fira Code", Consolas, monospace;
+      font-size: 0.85em;
+      background: #eaf0f8;
+      color: #c0392b;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 20px;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      border: 1px solid #30363d;
+    }
+
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      font-size: inherit;
+    }
+
+    /* ── Tables ───────────────────────────────────────────────────── */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 16px 0 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    thead tr {
+      background: var(--table-head);
+    }
+
+    th {
+      padding: 11px 16px;
+      text-align: left;
+      font-weight: 700;
+      color: var(--intel-dark);
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: #f0f6fc; }
+
+    /* ── Key Metric Cards ─────────────────────────────────────────── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+
+    .kpi-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--intel-blue);
+      border-radius: 8px;
+      padding: 18px 20px;
+      text-align: center;
+    }
+
+    .kpi-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--intel-blue);
+      line-height: 1;
+    }
+
+    .kpi-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Scrollspy active ─────────────────────────────────────────── */
+    .anchor { display: block; position: relative; top: -80px; visibility: hidden; }
+
+    /* ── Execution Flow Diagram ───────────────────────────────────── */
+    .exec-flow { margin: 20px 0; }
+    .flow-chain { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; padding: 12px 0; }
+    .flow-node { background: var(--intel-blue); color: #fff; padding: 7px 13px; border-radius: 6px; font-size: 0.79rem; font-weight: 600; white-space: nowrap; }
+    .flow-node.cpu { background: #1a6fa3; }
+    .flow-arrow { color: var(--muted); font-size: 1rem; padding: 0 2px; flex-shrink: 0; }
+    .flow-down { text-align: center; padding: 6px 0 2px; font-size: 0.7rem; font-weight: 700; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; }
+    .flow-down-line { width: 2px; height: 18px; background: var(--border); margin: 2px auto 6px; }
+    .tier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 0 0 4px; }
+    .tier-card { border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+    .tier-card .tier-header { padding: 9px 14px; font-size: 0.78rem; font-weight: 700; color: #fff; text-align: center; letter-spacing: 0.04em; text-transform: uppercase; }
+    .tier-card.fast .tier-header { background: #27ae60; }
+    .tier-card.medium .tier-header { background: var(--intel-blue); }
+    .tier-card.deep .tier-header { background: #8e44ad; }
+    .tier-card .tier-body { background: #fff; padding: 10px 12px; }
+    .tier-step { display: flex; align-items: flex-start; gap: 7px; font-size: 0.77rem; color: #2c3e50; padding: 4px 0; border-bottom: 1px solid #f0f4f8; line-height: 1.4; }
+    .tier-step:last-child { border-bottom: none; }
+    .tier-step-num { color: var(--intel-blue); font-weight: 700; flex-shrink: 0; font-size: 0.68rem; margin-top: 2px; width: 14px; }
+
+    /* ── Hardware Cards ───────────────────────────────────────────── */
+    .hw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+    .hw-card { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+    .hw-card .hw-header { padding: 13px 18px; font-size: 0.84rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .hw-card.hw-cpu .hw-header { background: #1a6fa3; }
+    .hw-card.hw-gpu .hw-header { background: #0b3d91; }
+    .hw-body { background: #fff; padding: 14px 18px; }
+    .hw-row { display: flex; gap: 8px; padding: 5px 0; border-bottom: 1px solid #f0f4f8; font-size: 0.79rem; line-height: 1.4; }
+    .hw-row:last-child { border-bottom: none; }
+    .hw-label { color: var(--muted); font-weight: 600; flex-shrink: 0; width: 108px; font-size: 0.74rem; padding-top: 1px; }
+    .hw-value { color: #2c3e50; }
+    .hw-note { margin-top: 10px; padding: 8px 12px; background: var(--intel-light); border-radius: 6px; font-size: 0.74rem; color: var(--intel-dark); font-style: italic; line-height: 1.5; }
+
+    /* ── Pipeline Staging Comparison ─────────────────────────────── */
+    .staging-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+    .staging-card { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+    .staging-card .staging-header { padding: 10px 16px; font-size: 0.8rem; font-weight: 700; color: #fff; text-align: center; }
+    .staging-card.bad .staging-header { background: #c0392b; }
+    .staging-card.good .staging-header { background: #27ae60; }
+    .staging-body { background: #fff; padding: 14px 16px; }
+    .staging-desc { font-size: 0.74rem; color: var(--muted); margin-bottom: 10px; }
+    .staging-requests { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+    .req-dot { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.58rem; font-weight: 700; color: #fff; }
+    .req-dot.gpu { background: #e74c3c; }
+    .req-dot.cpu { background: #2980b9; }
+    .req-dot.queued { background: #bdc3c7; color: #7f8c8d; }
+    .staging-legend { display: flex; gap: 14px; margin-bottom: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.7rem; color: var(--muted); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .staging-outcome { border-radius: 6px; padding: 8px 12px; font-size: 0.76rem; font-weight: 600; }
+    .staging-outcome.bad { color: #c0392b; background: #fdf2f0; }
+    .staging-outcome.good { color: #27ae60; background: #f0fdf4; }
+
+    /* ── Security Pipeline Stack ──────────────────────────────────── */
+    .security-stack { display: flex; flex-direction: column; margin: 20px 0; max-width: 580px; }
+    .sec-layer { display: flex; align-items: center; gap: 14px; }
+    .sec-box { flex: 0 0 260px; padding: 11px 18px; font-size: 0.82rem; font-weight: 600; color: #fff; border-radius: 6px; }
+    .sec-note { font-size: 0.74rem; color: var(--muted); font-style: italic; }
+    .sec-connector { padding-left: 22px; line-height: 1; color: #c0d0e0; font-size: 1.1rem; height: 14px; display: flex; align-items: center; }
+
+    /* ── Deployment Diagram ───────────────────────────────────────── */
+    .deploy-wrap { background: #fff; border: 2px solid var(--border); border-radius: 12px; padding: 24px; margin: 20px 0; max-width: 480px; }
+    .deploy-section-label { text-align: center; font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; }
+    .deploy-app-box { background: var(--intel-light); border: 2px solid var(--intel-blue); border-radius: 8px; padding: 12px 20px; text-align: center; margin-bottom: 6px; }
+    .deploy-app-name { font-weight: 700; color: var(--intel-dark); font-size: 0.9rem; }
+    .deploy-app-sub { font-size: 0.73rem; color: var(--muted); margin-top: 2px; }
+    .deploy-connectors { display: flex; justify-content: space-around; padding: 0 80px; margin-bottom: 2px; }
+    .deploy-line { display: flex; flex-direction: column; align-items: center; color: var(--intel-blue); font-size: 0.85rem; }
+    .deploy-line-bar { width: 2px; height: 16px; background: var(--intel-blue); }
+    .deploy-services { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .deploy-svc-box { background: #0b3d91; border-radius: 8px; padding: 12px 14px; color: #fff; }
+    .deploy-svc-name { font-weight: 700; font-size: 0.82rem; }
+    .deploy-svc-detail { font-size: 0.7rem; color: rgba(255,255,255,0.65); margin-top: 4px; line-height: 1.5; }
+
+    /* ── Financial Summary Cards ──────────────────────────────────── */
+    .fin-summary { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 18px 22px; margin: 16px 0; }
+    .fin-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #f0f4f8; font-size: 0.87rem; }
+    .fin-row:last-child { border-bottom: none; }
+    .fin-row.total { border-top: 2px solid var(--intel-blue); border-bottom: none; margin-top: 4px; padding-top: 10px; font-weight: 700; font-size: 0.93rem; color: var(--intel-dark); }
+    .fin-label { color: #2c3e50; }
+    .fin-value { font-weight: 600; color: var(--intel-blue); font-family: "SF Mono","Fira Code",Consolas,monospace; font-size: 0.85rem; }
+    .fin-row.total .fin-value { color: var(--intel-dark); }
+    .roi-callout { background: linear-gradient(135deg,var(--intel-dark),var(--intel-blue)); border-radius: 10px; padding: 20px 24px; margin: 16px 0; color: #fff; display: grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap: 16px; }
+    .roi-item { text-align: center; }
+    .roi-val { font-size: 1.9rem; font-weight: 800; color: var(--accent); line-height: 1; }
+    .roi-lbl { font-size: 0.7rem; color: rgba(255,255,255,0.65); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.07em; }
+    .breakeven-box { background: var(--intel-light); border-left: 4px solid var(--intel-blue); border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; }
+    .be-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 0.84rem; border-bottom: 1px dashed var(--border); }
+    .be-row:last-child { border-bottom: none; }
+    .be-label { color: var(--muted); }
+    .be-value { font-weight: 700; color: var(--intel-dark); font-family: "SF Mono","Fira Code",Consolas,monospace; }
+    .be-conclusion { margin-top: 12px; padding: 10px 14px; background: var(--intel-blue); color: #fff; border-radius: 6px; font-size: 0.82rem; font-weight: 600; text-align: center; }
+
+    /* ── TCO Form Template ────────────────────────────────────────── */
+    .tco-form { background: #fff; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 16px 0; }
+    .tco-section { padding: 14px 20px; border-bottom: 1px solid var(--border); }
+    .tco-section:last-child { border-bottom: none; }
+    .tco-section-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--intel-blue); margin-bottom: 10px; }
+    .tco-field { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 0.82rem; border-bottom: 1px dashed #eef2f7; }
+    .tco-field:last-child { border-bottom: none; }
+    .tco-field-label { color: #2c3e50; }
+    .tco-field-input { color: var(--muted); font-size: 0.78rem; font-style: italic; }
+
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <a class="sidebar-logo" href="index.html" style="text-decoration:none;">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="6" fill="#0068b5"/>
+        <path d="M7 10h4v12H7zm7-3h4v18h-4zm7 5h4v8h-4z" fill="white"/>
+      </svg>
+      <div>
+        <div class="sidebar-title">Agent Platform</div>
+        <div class="sidebar-subtitle">Documentation</div>
+      </div>
+    </a>
+  </div>
+
+  <nav>
+    <div class="nav-section">Docs</div>
+    <a class="section-link" href="index.html">&#8962; Home</a>
+    <a class="section-link" href="architecture.html">Architecture</a>
+    <a class="section-link active" href="marketing.html">Marketing Strategy</a>
+    <a class="section-link" href="roi.html">ROI &amp; TCO</a>
+    <a class="section-link" href="benchmarks.html">Benchmarks &amp; Analysis</a>
+
+    <div class="nav-section">Marketing</div>
+    <a href="#mkt-positioning">Positioning</a>
+    <a href="#mkt-segments">Target Segments</a>
+    <a href="#mkt-messages">Key Messages</a>
+    <a href="#mkt-competitive">Competitive Positioning</a>
+    <a href="#mkt-demo">Demo Strategy</a>
+    <a href="#mkt-pricing">Pricing Guidance</a>
+    <a href="#mkt-objections">Objection Handling</a>
+  </nav>
+</aside>
+
+<!-- ═══════════════════════ MAIN ═══════════════════════════ -->
+<main id="content">
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 2 — MARKETING
+  ══════════════════════════════════════════════════════════════ -->
+  <div class="doc-section">
+    <span class="doc-section-badge">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M11 2a2 2 0 012 2v4a2 2 0 01-2 2H9l-1 3H7l-1-3H4a2 2 0 01-2-2V4a2 2 0 012-2h7z"/></svg>
+      Marketing
+    </span>
+
+    <a class="anchor" id="mkt-positioning"></a>
+    <h1>Marketing Strategy</h1>
+
+    <h2>Positioning Statement</h2>
+    <blockquote>
+      <p>"Enterprise AI that works with your infrastructure, not against it."</p>
+    </blockquote>
+    <p>The Agent Platform positions Intel Xeon + Arc Pro B60 as the <strong>complete on-premises AI inference stack</strong> — not just model serving, but full enterprise workflow automation with security, observability, and cost control built in.</p>
+
+    <a class="anchor" id="mkt-segments"></a>
+    <h2>1. Target Segments</h2>
+
+    <h3>Primary: Large Enterprise IT Operations</h3>
+    <p><strong>Profile</strong>: 500+ employees, 1,000+ IT incidents/month, existing Xeon infrastructure, compliance requirements that discourage cloud AI.</p>
+    <p><strong>Pain points</strong>:</p>
+    <ul>
+      <li>Ticket triage is manual, slow, and inconsistent</li>
+      <li>Runbooks exist but aren't used (too many, hard to search)</li>
+      <li>MTTR is measured in hours, not minutes</li>
+      <li>On-call engineers burn out from repetitive L1 work</li>
+    </ul>
+    <blockquote><p>"Transform your incident response from hours to seconds. Same hardware. Same data center. Full control."</p></blockquote>
+
+    <h3>Secondary: Research &amp; Strategy Teams</h3>
+    <p><strong>Profile</strong>: Financial services, consulting, legal, intelligence — teams that produce written analysis from multiple sources under time pressure.</p>
+    <p><strong>Pain points</strong>:</p>
+    <ul>
+      <li>Research memos take days when the decision needs to happen today</li>
+      <li>Citation tracking is manual and error-prone</li>
+      <li>Quality varies by analyst experience and available time</li>
+      <li>No systematic coverage assessment</li>
+    </ul>
+    <blockquote><p>"4–8× faster research with full citation. Let your analysts do analysis, not information retrieval."</p></blockquote>
+
+    <h3>Tertiary: Intel Partners &amp; Systems Integrators</h3>
+    <p><strong>Profile</strong>: OEMs, VARs, and consulting firms selling Intel-based solutions to enterprise clients.</p>
+    <blockquote><p>"A turnkey enterprise AI demo that sells Intel hardware. 15-minute setup. Real metrics. Customer PoC in a week."</p></blockquote>
+
+    <a class="anchor" id="mkt-messages"></a>
+    <h2>2. Key Messages</h2>
+
+    <h3>Message 1: On-Premises and Secure</h3>
+    <blockquote><p>"Your data never leaves your data center. No API keys to cloud providers. No per-token bills. No data sovereignty concerns."</p></blockquote>
+
+    <h3>Message 2: 248:1 ROI</h3>
+    <blockquote><p>"For every dollar spent on hardware, the platform saves $248 in engineer time. Monthly."</p></blockquote>
+
+    <h3>Message 3: Observability Built In</h3>
+    <blockquote><p>"Every query shows its execution path, retrieved sources, model used, latency breakdown, and cost. No black boxes."</p></blockquote>
+
+    <h3>Message 4: Cost-Controlled Execution</h3>
+    <blockquote><p>"Simple questions cost simple resources. Three execution tiers route every query to the cheapest sufficient path."</p></blockquote>
+
+    <h3>Message 5: Heterogeneous Advantage</h3>
+    <blockquote><p>"2.27× more throughput at 31% lower cost per query. Same hardware, smarter scheduling."</p></blockquote>
+
+    <a class="anchor" id="mkt-competitive"></a>
+    <h2>3. Competitive Positioning</h2>
+
+    <h3>vs. Cloud AI APIs (OpenAI, Anthropic, Google)</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Dimension</th><th>Cloud AI</th><th>Agent Platform</th></tr></thead>
+        <tbody>
+          <tr><td>Data location</td><td>Their servers</td><td>Your data center</td></tr>
+          <tr><td>Cost model</td><td>Per-token variable</td><td>Fixed hardware cost</td></tr>
+          <tr><td>Latency</td><td>Network RTT + queue</td><td>Local, predictable</td></tr>
+          <tr><td>Customization</td><td>System prompts only</td><td>Full pipeline control</td></tr>
+          <tr><td>Observability</td><td>Limited (usage dashboard)</td><td>Full node-level tracing</td></tr>
+          <tr><td>Compliance</td><td>SOC 2, varies</td><td>You control everything</td></tr>
+          <tr><td>Air-gap capable</td><td>No</td><td>Yes</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>vs. GPU-Only On-Premises (NVIDIA-centric)</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Dimension</th><th>NVIDIA GPU-Only</th><th>Agent Platform (Xeon + Arc Pro)</th></tr></thead>
+        <tbody>
+          <tr><td>Hardware cost (GPU)</td><td>H100 SXM: ~$25,000&ndash;35,000/GPU<br/>RTX 4090: ~$1,800&ndash;2,200/GPU<br/>L40S: ~$6,000&ndash;9,000/GPU</td><td>Arc Pro B60: <strong>~$500/GPU</strong><br/>8&times; = ~$4,000 total for 192 GB VRAM</td></tr>
+          <tr><td>Decode speed (8B model, C=1)</td><td>H100: ~185&ndash;250 tok/s<br/>A100: ~125&ndash;160 tok/s<br/>RTX 4090: ~80&ndash;95 tok/s</td><td>8&times; B60 tp=8: ~41 tok/s<br/>(PCIe all-reduce + enforce-eager overhead)</td></tr>
+          <tr><td>Throughput @ c=32</td><td>Faster per-GPU decode but same KV-cache saturation at high concurrency without CPU staging</td><td><strong>2.27&times; throughput</strong> via Xeon classification stage that prevents GPU KV-cache saturation</td></tr>
+          <tr><td>192 GB VRAM cost</td><td>8&times; RTX 4090: ~$16,000<br/>4&times; L40S: ~$24,000&ndash;36,000<br/>2&times; H100: ~$50,000&ndash;70,000</td><td><strong>~$4,000</strong> — lowest-cost path to 192 GB VRAM</td></tr>
+          <tr><td>Power at 192 GB VRAM</td><td>8&times; RTX 4090: ~3,600 W<br/>4&times; L40S: ~1,400 W<br/>2&times; H100: ~1,400 W</td><td>8&times; B60: ~960&ndash;1,600 W<br/>(TDP configurable 120&ndash;200 W/card)</td></tr>
+          <tr><td>Existing infra leverage</td><td>Requires dedicated GPU servers</td><td>Extends existing Xeon servers with PCIe add-in cards</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.82rem;color:var(--muted);margin-top:-8px;">Arc Pro B60 launch price: ~$500/GPU (Intel Computex 2025). NVIDIA prices: 2025&ndash;2026 street estimates. Decode speeds: published vLLM benchmarks &amp; bandwidth-limited model. See <a href="#bench-nvidia-compare">Benchmarks &rsaquo; LLM Decode Speed</a> and <a href="#roi-nvidia-equiv">ROI &rsaquo; NVIDIA Equivalency</a> for full data.</p>
+
+    <h3>vs. Open-Source RAG Frameworks (LlamaIndex, Haystack)</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Dimension</th><th>RAG Frameworks</th><th>Agent Platform</th></tr></thead>
+        <tbody>
+          <tr><td>Scope</td><td>Retrieval pipeline</td><td>Full enterprise platform</td></tr>
+          <tr><td>Security</td><td>DIY</td><td>Built-in auth, RBAC, PII, approvals</td></tr>
+          <tr><td>Routing</td><td>Manual</td><td>Automatic 3-tier classification</td></tr>
+          <tr><td>Observability</td><td>Callbacks (DIY)</td><td>Full metrics dashboard</td></tr>
+          <tr><td>Deployment</td><td>Framework, not product</td><td>Docker Compose ready</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <a class="anchor" id="mkt-demo"></a>
+    <h2>4. Demo Strategy</h2>
+
+    <h3>15-Minute Customer Demo</h3>
+    <ol>
+      <li><strong>Architecture overview</strong> (2 min) — Show the platform diagram. Key message: "One platform, two scenarios, three execution tiers"</li>
+      <li><strong>IT Ops demo</strong> (5 min) — Submit: "Production DB connection pool exhausted on db-prod-01." Walk through: classification → runbook retrieval → root cause → actions → approval gate</li>
+      <li><strong>Deep Research demo</strong> (5 min) — Submit: "Compare dense retrieval, lexical search, and hybrid approaches for enterprise RAG." Highlight: sub-topic breakdown, source diversity, cited conclusions</li>
+      <li><strong>Metrics walkthrough</strong> (2 min) — Show per-query metrics: latency breakdown, token cost, hardware utilization</li>
+      <li><strong>TCO and next steps</strong> (1 min) — Present ROI numbers for customer's incident volume</li>
+    </ol>
+
+    <h3>PoC Playbook (Post-Demo)</h3>
+    <ol>
+      <li><strong>Week 1</strong>: Install platform on customer hardware. Ingest 100–500 KB articles</li>
+      <li><strong>Week 2</strong>: Connect to customer's ticket system (read-only connector)</li>
+      <li><strong>Week 3</strong>: Run 50–100 historical incidents through the platform. Measure time savings</li>
+      <li><strong>Week 4</strong>: Present results with customer-specific ROI numbers</li>
+    </ol>
+
+    <a class="anchor" id="mkt-content"></a>
+    <h2>5. Content Strategy</h2>
+
+    <h3>Technical Blog Series</h3>
+    <ol>
+      <li>"Building an Enterprise Agent Platform with LangGraph and vLLM"</li>
+      <li>"Why Hybrid Retrieval Outperforms Dense-Only for Enterprise RAG"</li>
+      <li>"The Pipeline Staging Effect: How CPU Classification Scales GPU Throughput 2.27×"</li>
+      <li>"Security Patterns for Production LLM Applications"</li>
+      <li>"Three Execution Tiers: Stop Overspending on Simple Queries"</li>
+    </ol>
+
+    <a class="anchor" id="mkt-pricing"></a>
+    <h2>6. Pricing Guidance (for Intel Sales)</h2>
+    <p>The Agent Platform is open-source (Apache 2.0). Revenue comes from hardware sales:</p>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Configuration</th><th>Hardware</th><th>Estimated Street Price</th><th>Target Workload</th></tr></thead>
+        <tbody>
+          <tr><td>Starter</td><td>1× Xeon + 4× Arc Pro B60</td><td>~$6,500</td><td>500 incidents/month</td></tr>
+          <tr><td>Standard</td><td>1× Xeon + 8× Arc Pro B60</td><td>~$9,000</td><td>2,000 incidents/month</td></tr>
+          <tr><td>Enterprise</td><td>2× Xeon + 16× Arc Pro B60</td><td>~$16,000</td><td>10,000 incidents/month</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <a class="anchor" id="mkt-objections"></a>
+    <h2>7. Objection Handling</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Objection</th><th>Response</th></tr></thead>
+        <tbody>
+          <tr><td>"We'll just use OpenAI / Claude"</td><td>"For prototyping, sure. For production with PII, compliance, and cost control? You need on-prem."</td></tr>
+          <tr><td>"Arc Pro B60 is too small for real work"</td><td>"8B-param models at 41 tok/s. 8 GPUs with 192GB total HBM. Benchmarked on 640 production queries."</td></tr>
+          <tr><td>"Our team doesn't have AI expertise"</td><td>"Docker Compose deployment, pre-built demos, documented architecture. Two engineer-days to production."</td></tr>
+          <tr><td>"What about model quality?"</td><td>"Llama 3.1 8B scored 4.1/5 on Claude-judged quality. Swap to 70B if you need more."</td></tr>
+          <tr><td>"We already have NVIDIA GPUs"</td><td>"This is about the Xeon you already have. The CPU staging effect works with any GPU — it's a software architecture win."</td></tr>
+          <tr><td>"Open source means no support"</td><td>"Intel provides reference design support. The platform is documented and tested. Your team owns it."</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div><!-- /doc-section marketing -->
+
+</main>
+
+<script>
+  // Scrollspy — highlight active sidebar link
+  const links = document.querySelectorAll('nav a');
+  const anchors = Array.from(document.querySelectorAll('.anchor')).filter(a => a.id);
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const match = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (match) match.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+
+  anchors.forEach(a => observer.observe(a));
+</script>
+</body>
+</html>

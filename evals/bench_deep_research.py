@@ -33,7 +33,7 @@ os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 
 
 # ── Monthly cost for per-query cost calculation ─────────────────────────────
-_MONTHLY_COST_USD = 512.0
+_MONTHLY_COST_USD = 423.0
 _SECONDS_PER_MONTH = 30.44 * 24 * 3600
 
 

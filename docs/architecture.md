@@ -427,7 +427,7 @@ Peak retrieval efficiency at C=16–32. Beyond C=32 the cross-encoder serializes
 
 ### TCO at Capacity
 
-- **Monthly infra cost**: $512
+- **Monthly infra cost**: $423
 - **Monthly capacity** (GPU C=8): 1.46M queries
-- **Cost per query at capacity**: $0.00035
-- **Break-even**: 82 IT incidents/month
+- **Cost per query at capacity**: $0.000290
+- **Break-even**: 68 IT incidents/month

@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Platform — Architecture</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --intel-blue:    #0068b5;
+      --intel-dark:    #00377b;
+      --intel-light:   #d6eaf8;
+      --accent:        #00c7fd;
+      --bg:            #f4f7fb;
+      --sidebar-bg:    #0b1e3d;
+      --sidebar-width: 260px;
+      --text:          #1a1a2e;
+      --muted:         #5a6a7a;
+      --border:        #dce5ef;
+      --code-bg:       #0d1117;
+      --code-text:     #e6edf3;
+      --table-head:    #eaf2fb;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ──────────────────────────────────────────────────── */
+    #sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--sidebar-width);
+      height: 100vh;
+      background: var(--sidebar-bg);
+      color: #c9d8f0;
+      overflow-y: auto;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      padding: 24px 20px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .sidebar-logo svg { flex-shrink: 0; }
+
+    .sidebar-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      line-height: 1.3;
+    }
+
+    .sidebar-subtitle {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: 2px;
+    }
+
+    nav { padding: 12px 0 24px; flex: 1; }
+
+    .nav-section {
+      padding: 16px 20px 4px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+
+    nav a {
+      display: block;
+      padding: 7px 20px 7px 28px;
+      font-size: 0.82rem;
+      color: #a8c0e0;
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+      line-height: 1.4;
+    }
+
+    nav a:hover, nav a.active {
+      color: #fff;
+      background: rgba(255,255,255,0.06);
+      border-left-color: var(--accent);
+    }
+
+    nav a.section-link {
+      padding-left: 20px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: #d0e4f7;
+    }
+
+    nav a.section-link:hover, nav a.section-link.active {
+      color: #fff;
+      border-left-color: var(--accent);
+    }
+
+    /* ── Main Content ─────────────────────────────────────────────── */
+    #content {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      max-width: 960px;
+      padding: 48px 56px 80px;
+    }
+
+    /* ── Section Dividers ─────────────────────────────────────────── */
+    .doc-section {
+      margin-bottom: 80px;
+    }
+
+    .doc-section-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--intel-blue);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+
+    /* ── Typography ───────────────────────────────────────────────── */
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--intel-dark);
+      line-height: 1.2;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 3px solid var(--intel-blue);
+    }
+
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--intel-dark);
+      margin: 40px 0 14px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--intel-blue);
+      margin: 28px 0 10px;
+    }
+
+    h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      margin: 18px 0 8px;
+    }
+
+    p {
+      line-height: 1.75;
+      margin-bottom: 14px;
+      color: #2c3e50;
+    }
+
+    strong { color: var(--intel-dark); }
+
+    ul, ol {
+      padding-left: 22px;
+      margin-bottom: 14px;
+    }
+
+    li {
+      line-height: 1.7;
+      margin-bottom: 4px;
+      color: #2c3e50;
+    }
+
+    a { color: var(--intel-blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 36px 0;
+    }
+
+    blockquote {
+      border-left: 4px solid var(--intel-blue);
+      background: var(--intel-light);
+      padding: 14px 20px;
+      margin: 20px 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    blockquote p { margin: 0; color: var(--intel-dark); font-style: italic; }
+
+    /* ── Code ─────────────────────────────────────────────────────── */
+    code {
+      font-family: "SF Mono", "Fira Code", Consolas, monospace;
+      font-size: 0.85em;
+      background: #eaf0f8;
+      color: #c0392b;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 20px;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      border: 1px solid #30363d;
+    }
+
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      font-size: inherit;
+    }
+
+    /* ── Tables ───────────────────────────────────────────────────── */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 16px 0 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    thead tr {
+      background: var(--table-head);
+    }
+
+    th {
+      padding: 11px 16px;
+      text-align: left;
+      font-weight: 700;
+      color: var(--intel-dark);
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: #f0f6fc; }
+
+    /* ── Key Metric Cards ─────────────────────────────────────────── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+
+    .kpi-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--intel-blue);
+      border-radius: 8px;
+      padding: 18px 20px;
+      text-align: center;
+    }
+
+    .kpi-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--intel-blue);
+      line-height: 1;
+    }
+
+    .kpi-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Scrollspy active ─────────────────────────────────────────── */
+    .anchor { display: block; position: relative; top: -80px; visibility: hidden; }
+
+    /* ── Execution Flow Diagram ───────────────────────────────────── */
+    .exec-flow { margin: 20px 0; }
+    .flow-chain { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; padding: 12px 0; }
+    .flow-node { background: var(--intel-blue); color: #fff; padding: 7px 13px; border-radius: 6px; font-size: 0.79rem; font-weight: 600; white-space: nowrap; }
+    .flow-node.cpu { background: #1a6fa3; }
+    .flow-arrow { color: var(--muted); font-size: 1rem; padding: 0 2px; flex-shrink: 0; }
+    .flow-down { text-align: center; padding: 6px 0 2px; font-size: 0.7rem; font-weight: 700; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; }
+    .flow-down-line { width: 2px; height: 18px; background: var(--border); margin: 2px auto 6px; }
+    .tier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 0 0 4px; }
+    .tier-card { border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+    .tier-card .tier-header { padding: 9px 14px; font-size: 0.78rem; font-weight: 700; color: #fff; text-align: center; letter-spacing: 0.04em; text-transform: uppercase; }
+    .tier-card.fast .tier-header { background: #27ae60; }
+    .tier-card.medium .tier-header { background: var(--intel-blue); }
+    .tier-card.deep .tier-header { background: #8e44ad; }
+    .tier-card .tier-body { background: #fff; padding: 10px 12px; }
+    .tier-step { display: flex; align-items: flex-start; gap: 7px; font-size: 0.77rem; color: #2c3e50; padding: 4px 0; border-bottom: 1px solid #f0f4f8; line-height: 1.4; }
+    .tier-step:last-child { border-bottom: none; }
+    .tier-step-num { color: var(--intel-blue); font-weight: 700; flex-shrink: 0; font-size: 0.68rem; margin-top: 2px; width: 14px; }
+
+    /* ── Hardware Cards ───────────────────────────────────────────── */
+    .hw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+    .hw-card { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+    .hw-card .hw-header { padding: 13px 18px; font-size: 0.84rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .hw-card.hw-cpu .hw-header { background: #1a6fa3; }
+    .hw-card.hw-gpu .hw-header { background: #0b3d91; }
+    .hw-body { background: #fff; padding: 14px 18px; }
+    .hw-row { display: flex; gap: 8px; padding: 5px 0; border-bottom: 1px solid #f0f4f8; font-size: 0.79rem; line-height: 1.4; }
+    .hw-row:last-child { border-bottom: none; }
+    .hw-label { color: var(--muted); font-weight: 600; flex-shrink: 0; width: 108px; font-size: 0.74rem; padding-top: 1px; }
+    .hw-value { color: #2c3e50; }
+    .hw-note { margin-top: 10px; padding: 8px 12px; background: var(--intel-light); border-radius: 6px; font-size: 0.74rem; color: var(--intel-dark); font-style: italic; line-height: 1.5; }
+
+    /* ── Pipeline Staging Comparison ─────────────────────────────── */
+    .staging-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+    .staging-card { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+    .staging-card .staging-header { padding: 10px 16px; font-size: 0.8rem; font-weight: 700; color: #fff; text-align: center; }
+    .staging-card.bad .staging-header { background: #c0392b; }
+    .staging-card.good .staging-header { background: #27ae60; }
+    .staging-body { background: #fff; padding: 14px 16px; }
+    .staging-desc { font-size: 0.74rem; color: var(--muted); margin-bottom: 10px; }
+    .staging-requests { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+    .req-dot { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.58rem; font-weight: 700; color: #fff; }
+    .req-dot.gpu { background: #e74c3c; }
+    .req-dot.cpu { background: #2980b9; }
+    .req-dot.queued { background: #bdc3c7; color: #7f8c8d; }
+    .staging-legend { display: flex; gap: 14px; margin-bottom: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.7rem; color: var(--muted); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .staging-outcome { border-radius: 6px; padding: 8px 12px; font-size: 0.76rem; font-weight: 600; }
+    .staging-outcome.bad { color: #c0392b; background: #fdf2f0; }
+    .staging-outcome.good { color: #27ae60; background: #f0fdf4; }
+
+    /* ── Security Pipeline Stack ──────────────────────────────────── */
+    .security-stack { display: flex; flex-direction: column; margin: 20px 0; max-width: 580px; }
+    .sec-layer { display: flex; align-items: center; gap: 14px; }
+    .sec-box { flex: 0 0 260px; padding: 11px 18px; font-size: 0.82rem; font-weight: 600; color: #fff; border-radius: 6px; }
+    .sec-note { font-size: 0.74rem; color: var(--muted); font-style: italic; }
+    .sec-connector { padding-left: 22px; line-height: 1; color: #c0d0e0; font-size: 1.1rem; height: 14px; display: flex; align-items: center; }
+
+    /* ── Deployment Diagram ───────────────────────────────────────── */
+    .deploy-wrap { background: #fff; border: 2px solid var(--border); border-radius: 12px; padding: 24px; margin: 20px 0; max-width: 480px; }
+    .deploy-section-label { text-align: center; font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; }
+    .deploy-app-box { background: var(--intel-light); border: 2px solid var(--intel-blue); border-radius: 8px; padding: 12px 20px; text-align: center; margin-bottom: 6px; }
+    .deploy-app-name { font-weight: 700; color: var(--intel-dark); font-size: 0.9rem; }
+    .deploy-app-sub { font-size: 0.73rem; color: var(--muted); margin-top: 2px; }
+    .deploy-connectors { display: flex; justify-content: space-around; padding: 0 80px; margin-bottom: 2px; }
+    .deploy-line { display: flex; flex-direction: column; align-items: center; color: var(--intel-blue); font-size: 0.85rem; }
+    .deploy-line-bar { width: 2px; height: 16px; background: var(--intel-blue); }
+    .deploy-services { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .deploy-svc-box { background: #0b3d91; border-radius: 8px; padding: 12px 14px; color: #fff; }
+    .deploy-svc-name { font-weight: 700; font-size: 0.82rem; }
+    .deploy-svc-detail { font-size: 0.7rem; color: rgba(255,255,255,0.65); margin-top: 4px; line-height: 1.5; }
+
+    /* ── Financial Summary Cards ──────────────────────────────────── */
+    .fin-summary { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 18px 22px; margin: 16px 0; }
+    .fin-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #f0f4f8; font-size: 0.87rem; }
+    .fin-row:last-child { border-bottom: none; }
+    .fin-row.total { border-top: 2px solid var(--intel-blue); border-bottom: none; margin-top: 4px; padding-top: 10px; font-weight: 700; font-size: 0.93rem; color: var(--intel-dark); }
+    .fin-label { color: #2c3e50; }
+    .fin-value { font-weight: 600; color: var(--intel-blue); font-family: "SF Mono","Fira Code",Consolas,monospace; font-size: 0.85rem; }
+    .fin-row.total .fin-value { color: var(--intel-dark); }
+    .roi-callout { background: linear-gradient(135deg,var(--intel-dark),var(--intel-blue)); border-radius: 10px; padding: 20px 24px; margin: 16px 0; color: #fff; display: grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap: 16px; }
+    .roi-item { text-align: center; }
+    .roi-val { font-size: 1.9rem; font-weight: 800; color: var(--accent); line-height: 1; }
+    .roi-lbl { font-size: 0.7rem; color: rgba(255,255,255,0.65); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.07em; }
+    .breakeven-box { background: var(--intel-light); border-left: 4px solid var(--intel-blue); border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; }
+    .be-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 0.84rem; border-bottom: 1px dashed var(--border); }
+    .be-row:last-child { border-bottom: none; }
+    .be-label { color: var(--muted); }
+    .be-value { font-weight: 700; color: var(--intel-dark); font-family: "SF Mono","Fira Code",Consolas,monospace; }
+    .be-conclusion { margin-top: 12px; padding: 10px 14px; background: var(--intel-blue); color: #fff; border-radius: 6px; font-size: 0.82rem; font-weight: 600; text-align: center; }
+
+    /* ── TCO Form Template ────────────────────────────────────────── */
+    .tco-form { background: #fff; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 16px 0; }
+    .tco-section { padding: 14px 20px; border-bottom: 1px solid var(--border); }
+    .tco-section:last-child { border-bottom: none; }
+    .tco-section-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--intel-blue); margin-bottom: 10px; }
+    .tco-field { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 0.82rem; border-bottom: 1px dashed #eef2f7; }
+    .tco-field:last-child { border-bottom: none; }
+    .tco-field-label { color: #2c3e50; }
+    .tco-field-input { color: var(--muted); font-size: 0.78rem; font-style: italic; }
+
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <a class="sidebar-logo" href="index.html" style="text-decoration:none;">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="6" fill="#0068b5"/>
+        <path d="M7 10h4v12H7zm7-3h4v18h-4zm7 5h4v8h-4z" fill="white"/>
+      </svg>
+      <div>
+        <div class="sidebar-title">Agent Platform</div>
+        <div class="sidebar-subtitle">Documentation</div>
+      </div>
+    </a>
+  </div>
+
+  <nav>
+    <div class="nav-section">Docs</div>
+    <a class="section-link" href="index.html">&#8962; Home</a>
+    <a class="section-link active" href="architecture.html">Architecture</a>
+    <a class="section-link" href="marketing.html">Marketing Strategy</a>
+    <a class="section-link" href="roi.html">ROI &amp; TCO</a>
+    <a class="section-link" href="benchmarks.html">Benchmarks &amp; Analysis</a>
+
+    <div class="nav-section">Architecture</div>
+    <a href="#arch-overview">System Overview</a>
+    <a href="#arch-principles">Design Principles</a>
+    <a href="#arch-flow">Execution Flow</a>
+    <a href="#arch-hw">Hardware Mapping</a>
+    <a href="#arch-langgraph">LangGraph Design</a>
+    <a href="#arch-security">Security Architecture</a>
+    <a href="#arch-retrieval">Retrieval Architecture</a>
+    <a href="#arch-deployment">Deployment Architecture</a>
+  </nav>
+</aside>
+
+<!-- ═══════════════════════ MAIN ═══════════════════════════ -->
+<main id="content">
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 1 — ARCHITECTURE
+  ══════════════════════════════════════════════════════════════ -->
+  <div class="doc-section">
+    <span class="doc-section-badge">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M1 3a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H3a2 2 0 01-2-2V3zm2-1a1 1 0 00-1 1v1h12V3a1 1 0 00-1-1H3zm11 3H2v7a1 1 0 001 1h10a1 1 0 001-1V5z"/></svg>
+      Architecture
+    </span>
+
+    <a class="anchor" id="arch-overview"></a>
+    <h1>Architecture</h1>
+
+    <a class="anchor" id="arch-overview-h2"></a>
+    <h2>System Overview</h2>
+    <p>The Agent Platform is a <strong>stateful graph-based orchestration system</strong> that routes enterprise queries through the cheapest sufficient execution path. It combines Intel Xeon CPU and Arc Pro B60 GPU to maximize throughput and minimize cost per query.</p>
+
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-value">3</div><div class="kpi-label">Execution Tiers</div></div>
+      <div class="kpi-card"><div class="kpi-value">2</div><div class="kpi-label">Scenarios</div></div>
+      <div class="kpi-card"><div class="kpi-value">2.27×</div><div class="kpi-label">Throughput Gain</div></div>
+      <div class="kpi-card"><div class="kpi-value">248:1</div><div class="kpi-label">IT Ops ROI</div></div>
+    </div>
+
+    <a class="anchor" id="arch-principles"></a>
+    <h2>Design Principles</h2>
+    <ol>
+      <li><strong>Classification-first</strong>: Every query is classified before execution. Simple queries never pay the cost of deep execution.</li>
+      <li><strong>Retrieval-augmented</strong>: No query executes without grounding in retrieved context. Hallucination is bounded by design.</li>
+      <li><strong>Observable by default</strong>: Every node, tool call, and LLM invocation emits timing and token metrics.</li>
+      <li><strong>Secure by default</strong>: Read-only by default. Write actions require explicit approval. All outputs are PII-scrubbed.</li>
+      <li><strong>Cost-aware</strong>: The router, packer, and reranker all minimize unnecessary token consumption.</li>
+    </ol>
+
+    <a class="anchor" id="arch-flow"></a>
+    <h2>Execution Flow</h2>
+
+    <div class="exec-flow">
+      <div class="flow-chain">
+        <div class="flow-node">Request</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node cpu">API Gateway</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node cpu">Ingest</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node cpu">Authenticate</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node cpu">Classify</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node cpu">Route</div>
+      </div>
+      <div class="flow-down">▼ branches by complexity tier</div>
+      <div class="flow-down-line"></div>
+      <div class="tier-grid">
+        <div class="tier-card fast">
+          <div class="tier-header">⚡ Fast</div>
+          <div class="tier-body">
+            <div class="tier-step"><span class="tier-step-num">1</span>Single-pass synthesis</div>
+          </div>
+        </div>
+        <div class="tier-card medium">
+          <div class="tier-header">⚙ Medium</div>
+          <div class="tier-body">
+            <div class="tier-step"><span class="tier-step-num">1</span>Entity extract (SLM/CPU)</div>
+            <div class="tier-step"><span class="tier-step-num">2</span>Root cause analysis (LLM)</div>
+            <div class="tier-step"><span class="tier-step-num">3</span>Recommended actions</div>
+            <div class="tier-step"><span class="tier-step-num">4</span>Human approval gate</div>
+            <div class="tier-step"><span class="tier-step-num">5</span>Closure note</div>
+          </div>
+        </div>
+        <div class="tier-card deep">
+          <div class="tier-header">🔬 Deep</div>
+          <div class="tier-body">
+            <div class="tier-step"><span class="tier-step-num">1</span>Research brief</div>
+            <div class="tier-step"><span class="tier-step-num">2</span>Supervisor decompose</div>
+            <div class="tier-step"><span class="tier-step-num">3</span>Sub-agent research</div>
+            <div class="tier-step"><span class="tier-step-num">4</span>Reflect / iterate</div>
+            <div class="tier-step"><span class="tier-step-num">5</span>Final synthesis</div>
+          </div>
+        </div>
+      </div>
+      <div class="flow-down">▼ all paths merge</div>
+      <div class="flow-down-line"></div>
+      <div class="flow-chain">
+        <div class="flow-node cpu">Policy Check</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node cpu">Format</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node cpu">Audit</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" style="background:#27ae60">Response</div>
+      </div>
+    </div>
+
+    <h3>Phase 1: Ingestion + Authentication (CPU)</h3>
+    <p>Every request enters through the FastAPI gateway and passes through:</p>
+    <ol>
+      <li><strong>Ingest</strong>: Normalize the request, assign task ID, initialize state</li>
+      <li><strong>Authenticate</strong>: Verify JWT or API key. In dev mode, a default analyst identity is injected</li>
+      <li><strong>Authorize</strong>: Check RBAC permissions for the requested scenario and action type</li>
+    </ol>
+
+    <h3>Phase 2: Classification + Routing (CPU / SLM)</h3>
+    <p>The router determines two things: <strong>scenario</strong> (it_ops or deep_research) and <strong>complexity</strong> (fast / medium / deep).</p>
+    <p><strong>Rule-based classification</strong> runs first:</p>
+    <ul>
+      <li>Deep signals: "compare", "analyze", "multi-factor", long queries (&gt;200 chars), many entities</li>
+      <li>Medium signals: "investigate", "root cause", "incident", action verbs</li>
+      <li>Fast signals: short queries (&lt;50 chars), "what is", "how to"</li>
+    </ul>
+    <p>If rule confidence ≥ 0.7, the LLM is skipped entirely. Otherwise, the SLM (Qwen 3B on CPU) classifies with a structured JSON response in ~0.2s.</p>
+    <p>This dual-gate approach means:</p>
+    <ul>
+      <li><strong>70–80% of queries</strong> are classified by rules alone (zero LLM cost)</li>
+      <li><strong>20–30% of edge cases</strong> use the SLM (0.2s, no GPU contention)</li>
+    </ul>
+
+    <h3>Phase 3: Retrieval (CPU)</h3>
+    <p>Retrieval runs on the Xeon CPU through a multi-stage pipeline:</p>
+    <ol>
+      <li><strong>Query expansion</strong>: Build retrieval variants from the original query + classification context</li>
+      <li><strong>Dense search (FAISS)</strong>: BGE-small-en-v1.5 embeddings → cosine similarity → top-N candidates</li>
+      <li><strong>Lexical search (BM25)</strong>: BM25Okapi keyword match → top-N candidates</li>
+      <li><strong>Reciprocal Rank Fusion</strong>: Merge and deduplicate across both result sets (k=60)</li>
+      <li><strong>Cross-encoder reranking</strong>: ms-marco-MiniLM-L-6-v2 scores each candidate against the query</li>
+      <li><strong>Context packing</strong>: Deduplicate (90% overlap threshold), enforce source diversity (max 3 per source), trim to token budget</li>
+    </ol>
+    <p>The retrieval pipeline typically returns 5–10 high-quality passages in &lt;0.5s.</p>
+
+    <h3>Phase 4: Scenario Execution (GPU + CPU)</h3>
+
+    <h4>IT Ops Path</h4>
+    <p><strong>Fast</strong>: Single-pass synthesis using top-ranked context and system prompt. No entity extraction, no multi-turn reasoning.</p>
+    <p><strong>Medium</strong> (full pipeline):</p>
+    <ol>
+      <li><strong>Extract entities</strong> (SLM/CPU): Parse ticket details, identify affected systems, severity, timestamps</li>
+      <li><strong>Root cause analysis</strong> (LLM/GPU): Analyze entities + context to hypothesize root cause with confidence score</li>
+      <li><strong>Recommended actions</strong> (LLM/GPU): Generate risk-aware remediation steps, flag high-risk actions for approval</li>
+      <li><strong>Human approval gate</strong>: If risk &gt; medium, pause and wait for explicit approval (auto-approved in demo mode)</li>
+      <li><strong>Closure note</strong> (LLM/GPU): Generate structured incident summary</li>
+    </ol>
+
+    <h4>Deep Research Path</h4>
+    <p><strong>Fast</strong>: Single-pass synthesis (same as IT Ops fast path but with research-tuned prompts).</p>
+    <p><strong>Medium</strong>: Research brief → direct final report (no decomposition).</p>
+    <p><strong>Deep</strong> (full pipeline):</p>
+    <ol>
+      <li><strong>Research brief</strong> (LLM/GPU): Synthesize initial findings from retrieval, identify key themes</li>
+      <li><strong>Supervisor decomposition</strong> (LLM/GPU): Break the query into 2–4 independent subtopics</li>
+      <li><strong>Sub-agent execution</strong> (sequential): Each subtask gets its own retrieval + synthesis pass</li>
+      <li><strong>Supervisor reflection</strong> (LLM/GPU): Assess coverage, identify gaps, decide: iterate or finalize</li>
+      <li><strong>Final report synthesis</strong> (LLM/GPU): Merge all sub-findings into a structured, cited decision memo</li>
+    </ol>
+    <p>The deep path has a circuit breaker: max 2 reflection iterations before forced finalization.</p>
+
+    <h3>Phase 5: Output + Audit (CPU)</h3>
+    <ol>
+      <li><strong>Policy check</strong>: Scan output for PII, blocked patterns, prompt injection residue. Redact as needed</li>
+      <li><strong>Format response</strong>: Build citation list, attach metrics, structure output</li>
+      <li><strong>Audit persistence</strong>: Log full execution trace to SQLite (task, path, timing, tokens, approval decision)</li>
+    </ol>
+
+    <a class="anchor" id="arch-hw"></a>
+    <h2>Hardware Mapping</h2>
+
+    <div class="hw-grid">
+      <div class="hw-card hw-cpu">
+        <div class="hw-header">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M5 0a.5.5 0 01.5.5V2h1V.5a.5.5 0 011 0V2h1V.5a.5.5 0 011 0V2h1V.5a.5.5 0 011 0V2A2 2 0 0114 4v1h1.5a.5.5 0 010 1H14v1h1.5a.5.5 0 010 1H14v1h1.5a.5.5 0 010 1H14v1a2 2 0 01-2 2v1.5a.5.5 0 01-1 0V14h-1v1.5a.5.5 0 01-1 0V14H8v1.5a.5.5 0 01-1 0V14H6v1.5a.5.5 0 01-1 0V14a2 2 0 01-2-2v-1H1.5a.5.5 0 010-1H3V9H1.5a.5.5 0 010-1H3V7H1.5a.5.5 0 010-1H3V5H1.5a.5.5 0 010-1H3a2 2 0 012-2V.5A.5.5 0 015 0z"/></svg>
+          Intel Xeon 6 (CPU)
+        </div>
+        <div class="hw-body">
+          <div class="hw-row"><span class="hw-label">Control Plane</span><span class="hw-value">API, routing, auth, RBAC, audit</span></div>
+          <div class="hw-row"><span class="hw-label">Classification</span><span class="hw-value">Qwen 3B SLM via vLLM (port 8001)</span></div>
+          <div class="hw-row"><span class="hw-label">Retrieval</span><span class="hw-value">BGE-small embeddings, FAISS, BM25</span></div>
+          <div class="hw-row"><span class="hw-label">Reranking</span><span class="hw-value">Cross-encoder, 22M params</span></div>
+          <div class="hw-row"><span class="hw-label">Post-process</span><span class="hw-value">PII redaction, context packing, formatting</span></div>
+          <div class="hw-note">I/O-bound workloads. 1–5% of pipeline time for simple queries; 60%+ for complex entity extraction.</div>
+        </div>
+      </div>
+      <div class="hw-card hw-gpu">
+        <div class="hw-header">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M4 8a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm7.5-1.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"/><path d="M0 1.5A.5.5 0 01.5 1h1a.5.5 0 01.5.5V4H3a1 1 0 011 1v.5h8V5a1 1 0 011-1h1V1.5a.5.5 0 011 0V4h.5a.5.5 0 01.5.5v7a.5.5 0 01-.5.5H15v2.5a.5.5 0 01-1 0V12h-1a1 1 0 01-1-1v-.5H4v.5a1 1 0 01-1 1H2v2.5a.5.5 0 01-1 0V12H.5a.5.5 0 01-.5-.5v-7A.5.5 0 01.5 4H1V1.5z"/></svg>
+          Intel Arc Pro B60 × 8 (GPU)
+        </div>
+        <div class="hw-body">
+          <div class="hw-row"><span class="hw-label">Reasoning</span><span class="hw-value">Root cause analysis — Llama-3.1-8B-Instruct</span></div>
+          <div class="hw-row"><span class="hw-label">Synthesis</span><span class="hw-value">Report generation, closure notes</span></div>
+          <div class="hw-row"><span class="hw-label">Multi-hop</span><span class="hw-value">Sub-agent research, supervisor reflection</span></div>
+          <div class="hw-row"><span class="hw-label">Serving</span><span class="hw-value">vLLM tp=8, prefix caching, eager mode</span></div>
+          <div class="hw-row"><span class="hw-label">Performance</span><span class="hw-value">~41 tok/s, 131K max context, 192 GB HBM total</span></div>
+          <div class="hw-note">Memory-bandwidth-bound. 8 GPUs provide 192 GB HBM to avoid KV-cache saturation at large contexts.</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Pipeline Staging Effect at Scale</h3>
+    <p>At concurrency &gt; 8, the CPU classification stage creates a <strong>natural rate-limiting buffer</strong>:</p>
+
+    <div class="staging-grid">
+      <div class="staging-card bad">
+        <div class="staging-header">✗ GPU-Only at c=32</div>
+        <div class="staging-body">
+          <p class="staging-desc">All requests hit GPU simultaneously</p>
+          <div class="staging-requests">
+            <div class="req-dot gpu">R1</div><div class="req-dot gpu">R2</div><div class="req-dot gpu">R3</div>
+            <div class="req-dot gpu">R4</div><div class="req-dot gpu">R5</div><div class="req-dot gpu">R6</div>
+            <div class="req-dot gpu">R7</div><div class="req-dot gpu">R8</div><div class="req-dot gpu">R9</div>
+            <div class="req-dot gpu">R10</div>
+          </div>
+          <div class="staging-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>On GPU</div>
+          </div>
+          <div class="staging-outcome bad">KV-cache saturated → throughput drops −25% at c=32</div>
+        </div>
+      </div>
+      <div class="staging-card good">
+        <div class="staging-header">✓ Heterogeneous (Xeon + Arc Pro)</div>
+        <div class="staging-body">
+          <p class="staging-desc">CPU classifies first; GPU receives staged waves</p>
+          <div class="staging-requests">
+            <div class="req-dot gpu">R1</div><div class="req-dot gpu">R2</div>
+            <div class="req-dot cpu">R3</div><div class="req-dot cpu">R4</div>
+            <div class="req-dot queued">R5</div><div class="req-dot queued">R6</div>
+            <div class="req-dot queued">R7</div><div class="req-dot queued">R8</div>
+            <div class="req-dot queued">R9</div><div class="req-dot queued">R10</div>
+          </div>
+          <div class="staging-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>On GPU</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#2980b9"></div>On CPU (classifying)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#bdc3c7"></div>Queued</div>
+          </div>
+          <div class="staging-outcome good">Optimal batch size maintained → +81% throughput from c=16 to c=32</div>
+        </div>
+      </div>
+    </div>
+    <p>This is not speculation. It is measured and reproducible.</p>
+
+    <a class="anchor" id="arch-langgraph"></a>
+    <h2>LangGraph Design</h2>
+
+    <h3>State Schema</h3>
+<pre>
+class AgentState(TypedDict, total=False):
+    # Identity
+    task_id: str
+    scenario: str
+    tenant_id: str
+
+    # Auth
+    user_id: str
+    user_role: str
+
+    # Classification
+    query: str
+    complexity: str              # fast | medium | deep
+    risk_level: str              # low | medium | high | critical
+    execution_path: str          # e.g., "it_ops_single_agent"
+
+    # Retrieval
+    retrieval_plan: dict
+    retrieved_chunks: list[dict]
+    packed_context: str
+
+    # LLM message accumulation
+    messages: Annotated[list[BaseMessage], add_messages]
+
+    # Scenario-specific fields...
+    # Observability fields...
+</pre>
+
+    <h3>Graph Construction Pattern</h3>
+    <p>Both scenarios share a common prefix (ingest → auth → classify → retrieve → route) and suffix (policy → format → audit). The scenario-specific middle section is composed as a subgraph:</p>
+<pre>
+# Shared prefix
+graph.add_node("ingest", ingest_request)
+graph.add_node("authenticate", authenticate_and_authorize)
+graph.add_node("classify", classify_scenario_and_complexity)
+graph.add_node("retrieve", retrieve_candidates)
+graph.add_node("route", route_execution_path)
+
+# Scenario-specific (conditional based on route output)
+graph.add_conditional_edges("route", scenario_router, {
+    "it_ops_fast":         "it_fast_synth",
+    "it_ops_single_agent": "it_extract",
+    "research_fast":       "research_fast_synth",
+    "research_medium":     "research_brief",
+    "research_deep":       "research_brief",
+})
+</pre>
+
+    <h3>Bounded Execution</h3>
+    <p>Every loop and agent has explicit limits:</p>
+    <ul>
+      <li><strong>Agent node loops</strong>: max 15 iterations</li>
+      <li><strong>Supervisor rounds</strong>: max 5 reflection cycles</li>
+      <li><strong>Sub-agents per task</strong>: max 4 (configurable)</li>
+      <li><strong>Context tokens per retrieval</strong>: max 8,192 tokens</li>
+    </ul>
+    <p>These prevent runaway cost and latency.</p>
+
+    <a class="anchor" id="arch-security"></a>
+    <h2>Security Architecture</h2>
+
+    <div class="security-stack">
+      <div class="sec-layer">
+        <div class="sec-box" style="background:#1a5276;">JWT / API Key Auth</div>
+        <span class="sec-note">← Reject unauthenticated</span>
+      </div>
+      <div class="sec-connector">│</div>
+      <div class="sec-layer">
+        <div class="sec-box" style="background:#1f618d;">RBAC Check</div>
+        <span class="sec-note">← Reject unauthorized</span>
+      </div>
+      <div class="sec-connector">│</div>
+      <div class="sec-layer">
+        <div class="sec-box" style="background:#2471a3;">Input Sanitization</div>
+        <span class="sec-note">← Log injection attempts</span>
+      </div>
+      <div class="sec-connector">│</div>
+      <div class="sec-layer">
+        <div class="sec-box" style="background:#2e86c1;">Execution (Graph)</div>
+        <span class="sec-note"></span>
+      </div>
+      <div class="sec-connector">│</div>
+      <div class="sec-layer">
+        <div class="sec-box" style="background:#2980b9;">PII Redaction</div>
+        <span class="sec-note">← Scrub before output</span>
+      </div>
+      <div class="sec-connector">│</div>
+      <div class="sec-layer">
+        <div class="sec-box" style="background:#4a90c4;">Output Policy Check</div>
+        <span class="sec-note">← Block dangerous patterns</span>
+      </div>
+      <div class="sec-connector">│</div>
+      <div class="sec-layer">
+        <div class="sec-box" style="background:#6baed6;">Audit Log</div>
+        <span class="sec-note">← Full trace persisted</span>
+      </div>
+    </div>
+
+    <p>Key design decisions:</p>
+    <ul>
+      <li><strong>All connectors are read-only by default.</strong> Write actions require both RBAC and approval.</li>
+      <li><strong>PII redaction runs on output, not input</strong> — the model sees real data for better reasoning, but the user never sees PII in the response.</li>
+      <li><strong>Prompt injection detection is heuristic</strong> — it flags but does not block retrieved content, since false positives would degrade retrieval quality.</li>
+      <li><strong>Approval gate is async</strong> — the graph pauses and waits for an explicit decision via the API. In demo mode, it auto-approves.</li>
+    </ul>
+
+    <a class="anchor" id="arch-retrieval"></a>
+    <h2>Retrieval Architecture</h2>
+
+    <h3>Hybrid Search Design (Benchmarked)</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Stage</th><th>Purpose</th><th>Benchmarked Latency (12K corpus)</th></tr></thead>
+        <tbody>
+          <tr><td>Embedding</td><td>Convert query to 384-dim vector</td><td>8–15 ms</td></tr>
+          <tr><td>FAISS HNSW search</td><td>Dense similarity, top-50</td><td>p50=18 ms, p99=21 ms</td></tr>
+          <tr><td>BM25 search</td><td>Keyword matching, top-50</td><td>p50=31 ms, p99=31 ms</td></tr>
+          <tr><td>RRF fusion</td><td>Merge + deduplicate</td><td>&lt;1 ms</td></tr>
+          <tr><td>Cross-encoder rerank</td><td>Score top-20 against query</td><td>p50=437 ms, p99=669 ms</td></tr>
+          <tr><td>Context packing</td><td>Dedup, diversity, budget</td><td>&lt;1 ms</td></tr>
+          <tr><td><strong>Full pipeline</strong></td><td><strong>End-to-end retrieval</strong></td><td><strong>p50=527 ms</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>Why hybrid?</strong> Dense search excels at semantic similarity but misses exact keyword matches. BM25 catches exact terms but fails on paraphrase. RRF fusion gives the best of both.</p>
+    <p><strong>Why reranking?</strong> FAISS top-50 typically has 60–80% irrelevant results. The cross-encoder prunes these, yielding top-1 rerank scores of 0.06–3.77 and saving 34K–50K tokens per query in context packing.</p>
+
+    <h3>Indexing</h3>
+    <ul>
+      <li><strong>Corpus</strong>: 12,160 documents (160 runbooks, 9,000 incident histories, 3,000 KB how-tos)</li>
+      <li><strong>Embeddings</strong>: BGE-small-en-v1.5 (384-dim, 33M params, runs on CPU in &lt;50ms/chunk)</li>
+      <li><strong>Index</strong>: FAISS IndexHNSWFlat (M=32, efConstruction=200, efSearch=64) — auto-selected for corpus ≥10K vectors. 290× faster than IndexFlatIP at 623K vectors, 98% recall@20</li>
+      <li><strong>Metadata</strong>: Every chunk carries <code>chunk_id</code>, <code>source_id</code>, <code>title</code>, <code>text</code>, <code>tenant_id</code></li>
+    </ul>
+
+    <a class="anchor" id="arch-deployment"></a>
+    <h2>Deployment Architecture</h2>
+
+    <div class="deploy-wrap">
+      <div class="deploy-section-label">Single Server — Development / Demo</div>
+      <div class="deploy-app-box">
+        <div class="deploy-app-name">Agent Platform — port 8081</div>
+        <div class="deploy-app-sub">Python / FastAPI process</div>
+      </div>
+      <div class="deploy-connectors">
+        <div class="deploy-line"><div class="deploy-line-bar"></div>↓</div>
+        <div class="deploy-line"><div class="deploy-line-bar"></div>↓</div>
+      </div>
+      <div class="deploy-services">
+        <div class="deploy-svc-box">
+          <div class="deploy-svc-name">vLLM GPU — port 8000</div>
+          <div class="deploy-svc-detail">Llama-3.1-8B-Instruct · tp=8<br>Intel Arc Pro B60 ×8</div>
+        </div>
+        <div class="deploy-svc-box">
+          <div class="deploy-svc-name">vLLM CPU — port 8001</div>
+          <div class="deploy-svc-detail">Qwen2.5-3B-Instruct · tp=1<br>Intel Xeon 6</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /doc-section architecture -->
+
+</main>
+
+<script>
+  // Scrollspy — highlight active sidebar link
+  const links = document.querySelectorAll('nav a');
+  const anchors = Array.from(document.querySelectorAll('.anchor')).filter(a => a.id);
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const match = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (match) match.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+
+  anchors.forEach(a => observer.observe(a));
+</script>
+</body>
+</html>

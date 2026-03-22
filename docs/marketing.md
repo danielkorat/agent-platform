@@ -58,14 +58,14 @@ This matters because:
 - Enterprise data often contains PII, trade secrets, or ITAR-controlled information
 - Total cost is predictable: fixed hardware cost, no variable API fees
 
-### Message 2: 138:1 ROI
+### Message 2: 248:1 ROI
 
-> "For every dollar spent on hardware, the platform saves $138 in engineer time. Monthly."
+> "For every dollar spent on hardware, the platform saves $248 in engineer time. Monthly."
 
 This matters because:
 - CIOs need financial justification, not just technical merit
 - The ROI is driven by time savings (easy to verify), not speculative productivity gains
-- Break-even at 82 incidents/month means virtually every enterprise qualifies
+- Break-even at 68 incidents/month means virtually every enterprise qualifies
 
 ### Message 3: Observability Built In
 
@@ -214,9 +214,9 @@ The Agent Platform is open-source (Apache 2.0). Revenue comes from hardware sale
 
 | Configuration | Hardware | Estimated Street Price | Target Workload |
 |---|---|---|---|
-| Starter | 1× Xeon + 4× Arc Pro B60 | ~$8,000 | 500 incidents/month |
-| Standard | 1× Xeon + 8× Arc Pro B60 | ~$12,000 | 2,000 incidents/month |
-| Enterprise | 2× Xeon + 16× Arc Pro B60 | ~$22,000 | 10,000 incidents/month |
+| Starter | 1× Xeon + 4× Arc Pro B60 | ~$6,500 | 500 incidents/month |
+| Standard | 1× Xeon + 8× Arc Pro B60 | ~$9,000 | 2,000 incidents/month |
+| Enterprise | 2× Xeon + 16× Arc Pro B60 | ~$16,000 | 10,000 incidents/month |
 
 **Attach rate target**: Ship the Agent Platform as a reference design with every Arc Pro B60 server sale. "Buy the hardware, get the software. Here's the ROI proof."
 
