@@ -12,7 +12,13 @@ When summarization is **in the critical path** (output must complete before the 
 | Deep Research — compress before `generate_final_report` | 45s | +3–5s (1 summary, ~600 tokens) | −0.2s | **+3–5s worse** |
 | Medium tier — compress retrieval context before synthesis | 7–10s | +3–5s | −0.1s | **+3–5s worse** |
 
-**Root cause**: GPU prefill is fast (~5K tokens in <100ms). The bottleneck is autoregressive decode. Summarization doesn't reduce output tokens — it only trims the next node's input.
+**Root cause at short contexts**: At ≤5K tokens, GPU prefill is fast (<100ms) and KV cache is small. But this underweights two effects that scale with sequence length:
+
+1. **TTFT scales superlinearly** with input length (O(n²) attention). At 20K+ tokens (multi-turn loops), TTFT on BMG/CRI could reach 500ms–2s+ — not the ~100ms assumed above. Exact scaling needs benchmarking.
+2. **KV cache affects every decode step**, not just prefill. Each output token attends to the full cache. 20K cached vs 5K = ~4× more attention work **per generated token**, compounding over thousands of output tokens.
+3. **KV cache capacity** is the ceiling on concurrent requests and max history length. Shorter contexts = more concurrent users or longer conversations before eviction.
+
+For the serial Deep Research cases above (single-pass, ≤10K input), the summarization overhead still dominates. But for long-context and multi-turn scenarios, these effects flip the math (see next section).
 
 ## Will Reduce Latency: Parallel / Async Pipelines
 
@@ -26,6 +32,30 @@ When summarization runs **off the critical path** or reduces tokens that hit a h
 | **Streaming UX** | Summarize sub-findings as they arrive, display progressive summaries to user while GPU works | Zero critical-path cost (parallel) | **Perceived latency −10–20s** on deep tier |
 
 The multi-turn agent loop case is the strongest: IT Ops `execute_actions` can run 5–15 iterations, each re-reading the full message history. At iteration 10, that's ~20K accumulated tokens. Compressing prior rounds to ~500 tokens each saves ~15K input tokens → ~1.5s prefill savings per iteration × remaining iterations.
+
+## TTFT & KV Cache: The Scaling Argument
+
+Summarization's value **grows non-linearly** with context length due to attention cost and KV cache pressure:
+
+| Input Tokens | Est. TTFT (BMG) | KV Cache / Request | Decode Attn Cost / Token | Summarization Value |
+|-------------|-----------------|-------------------|-------------------------|-------------------|
+| 2K | ~30ms | ~0.5 GB | Baseline | Negligible |
+| 8K | ~100ms | ~2 GB | 4× baseline | Low |
+| 20K | ~500ms–1s | ~5 GB | 10× baseline | **Moderate** |
+| 50K | ~2–5s | ~12 GB | 25× baseline | **High** |
+| 100K+ | ~10s+ | ~24 GB+ | 50× baseline | **Critical** |
+
+*Estimates approximate; BMG/CRI numbers with `--enforce-eager` tp=8 need benchmarking.*
+
+### Where this changes the verdict
+
+- **Multi-turn IT Ops** (10+ iterations, 20K+ accumulated): Each iteration's decode runs against a growing KV cache. Summarizing 20K→5K reduces both TTFT and per-token decode cost. Over 5 remaining iterations × 2K output tokens, cumulative speedup ~3–8s — enough to justify the 2–4s summarization cost on Xeon.
+- **Deep Research deep tier** (single-pass, 45s): Still not worth it. Each LLM call sees context once; the 5–8s summarization cost exceeds ~1s TTFT+decode savings at 10K input.
+- **Concurrent throughput**: 8 concurrent requests × 20K tokens = 160K total KV cache. Summarizing to 5K each = 40K total — **4× more headroom** before KV eviction degrades throughput.
+
+### Open question: BMG/CRI TTFT curve
+
+A TTFT sweep (1K, 4K, 8K, 16K, 32K, 64K input → measure TTFT) on BMG with vLLM would pin down the real crossover point where summarization's GPU savings exceed its Xeon cost.
 
 ## Alternative LLMs for CPU Summarization
 
