@@ -500,15 +500,15 @@
         <div style="font-size:.8rem;opacity:.8;margin-top:4px;">Documents Indexed</div>
       </div>
       <div style="background:linear-gradient(135deg,#0068b5,#003d6b);border-radius:12px;padding:20px;color:#fff;text-align:center;">
-        <div style="font-size:2rem;font-weight:800;">19 ms</div>
+        <div style="font-size:2rem;font-weight:800;">22 ms</div>
         <div style="font-size:.8rem;opacity:.8;margin-top:4px;">FAISS HNSW p50</div>
       </div>
       <div style="background:linear-gradient(135deg,#0068b5,#003d6b);border-radius:12px;padding:20px;color:#fff;text-align:center;">
-        <div style="font-size:2rem;font-weight:800;">91 q/s</div>
+        <div style="font-size:2rem;font-weight:800;">81 q/s</div>
         <div style="font-size:.8rem;opacity:.8;margin-top:4px;">Peak Pipeline Throughput</div>
       </div>
       <div style="background:linear-gradient(135deg,#0068b5,#003d6b);border-radius:12px;padding:20px;color:#fff;text-align:center;">
-        <div style="font-size:2rem;font-weight:800;">$0.000256</div>
+        <div style="font-size:2rem;font-weight:800;">$0.000257</div>
         <div style="font-size:.8rem;opacity:.8;margin-top:4px;">Cost/Query at Capacity</div>
       </div>
     </div>
@@ -516,32 +516,32 @@
     <!-- ── Shared Infrastructure ── -->
     <a class="anchor" id="bench-infra"></a>
     <h2>Shared Infrastructure: Component Latency</h2>
-    <p>These components are shared across both scenarios — retrieval pipeline, router, and context packing. With the Torch/20 pre-truncation default, the cross-encoder is now 437ms — a 3.8× improvement over the 50-candidate baseline (1,653ms).</p>
+    <p>These components are shared across both scenarios — retrieval pipeline, router, and context packing. With the Torch/20 pre-truncation default, the cross-encoder is now 493ms — a 3.4× improvement over the 50-candidate baseline (1,653ms).</p>
 
     <div style="margin:20px 0;font-size:.85rem;">
       <div style="display:flex;align-items:center;margin-bottom:8px;">
         <div style="width:160px;text-align:right;padding-right:12px;color:var(--muted);font-weight:600;">Router (rules)</div>
-        <div style="background:#3ddc84;height:24px;border-radius:4px;min-width:2px;width:calc(0.024 / 527 * 100%);" title="0.024ms"></div>
+        <div style="background:#3ddc84;height:24px;border-radius:4px;min-width:2px;width:calc(0.024 / 580 * 100%);" title="0.024ms"></div>
         <span style="margin-left:8px;font-weight:700;">&lt;0.1 ms</span>
       </div>
       <div style="display:flex;align-items:center;margin-bottom:8px;">
         <div style="width:160px;text-align:right;padding-right:12px;color:var(--muted);font-weight:600;">FAISS HNSW</div>
-        <div style="background:#00c7fd;height:24px;border-radius:4px;width:calc(19 / 527 * 100%);" title="19ms"></div>
-        <span style="margin-left:8px;font-weight:700;">19 ms</span>
+        <div style="background:#00c7fd;height:24px;border-radius:4px;width:calc(22 / 580 * 100%);" title="22ms"></div>
+        <span style="margin-left:8px;font-weight:700;">22 ms</span>
       </div>
       <div style="display:flex;align-items:center;margin-bottom:8px;">
         <div style="width:160px;text-align:right;padding-right:12px;color:var(--muted);font-weight:600;">BM25 Search</div>
-        <div style="background:#4fc3f7;height:24px;border-radius:4px;width:calc(30 / 527 * 100%);" title="30ms"></div>
-        <span style="margin-left:8px;font-weight:700;">30 ms</span>
+        <div style="background:#4fc3f7;height:24px;border-radius:4px;width:calc(29 / 580 * 100%);" title="29ms"></div>
+        <span style="margin-left:8px;font-weight:700;">29 ms</span>
       </div>
       <div style="display:flex;align-items:center;margin-bottom:8px;">
         <div style="width:160px;text-align:right;padding-right:12px;color:var(--muted);font-weight:600;">Cross-Encoder</div>
-        <div style="background:#ff7043;height:24px;border-radius:4px;width:calc(437 / 527 * 100%);" title="437ms"></div>
-        <span style="margin-left:8px;font-weight:700;">437 ms</span>
+        <div style="background:#ff7043;height:24px;border-radius:4px;width:calc(493 / 580 * 100%);" title="493ms"></div>
+        <span style="margin-left:8px;font-weight:700;">493 ms</span>
       </div>
       <div style="display:flex;align-items:center;margin-bottom:8px;">
         <div style="width:160px;text-align:right;padding-right:12px;color:var(--muted);font-weight:600;">RRF + Packing</div>
-        <div style="background:#3ddc84;height:24px;border-radius:4px;min-width:2px;width:calc(1 / 527 * 100%);" title="<1ms"></div>
+        <div style="background:#3ddc84;height:24px;border-radius:4px;min-width:2px;width:calc(1 / 580 * 100%);" title="<1ms"></div>
         <span style="margin-left:8px;font-weight:700;">&lt;1 ms</span>
       </div>
     </div>
@@ -550,10 +550,10 @@
       <table>
         <thead><tr><th>Component</th><th>p50</th><th>p99</th><th>Notes</th></tr></thead>
         <tbody>
-          <tr><td>FAISS HNSW search</td><td>19 ms</td><td>25 ms</td><td>12K vectors, 384-dim, M=32, efSearch=64</td></tr>
-          <tr><td>BM25 lexical search</td><td>30 ms</td><td>30 ms</td><td>12K documents, rank_bm25</td></tr>
-          <tr><td>Cross-encoder rerank</td><td>437 ms</td><td>669 ms</td><td>Top-20 → top-10, ms-marco-MiniLM (Torch/20)</td></tr>
-          <tr><td>Full retrieval pipeline</td><td>527 ms</td><td>527 ms</td><td>Vector + BM25 + RRF + rerank + pack</td></tr>
+          <tr><td>FAISS HNSW search</td><td>22 ms</td><td>23 ms</td><td>12K vectors, 384-dim, M=32, efSearch=64</td></tr>
+          <tr><td>BM25 lexical search</td><td>29 ms</td><td>29 ms</td><td>12K documents, rank_bm25</td></tr>
+          <tr><td>Cross-encoder rerank</td><td>493 ms</td><td>729 ms</td><td>Top-20 → top-10, ms-marco-MiniLM (Torch/20)</td></tr>
+          <tr><td>Full retrieval pipeline</td><td>580 ms</td><td>580 ms</td><td>Vector + BM25 + RRF + rerank + pack</td></tr>
           <tr><td>Router (rules)</td><td>0.024 ms</td><td>0.024 ms</td><td>100% rule coverage on eval set</td></tr>
         </tbody>
       </table>
@@ -562,7 +562,7 @@
     <!-- ── Concurrency Scaling ── -->
     <a class="anchor" id="bench-concurrency"></a>
     <h2>Concurrency Scaling</h2>
-    <p>How latency and throughput change as concurrent requests increase. With the Torch/20 default, pipeline throughput peaks at <strong>C=4 (91 q/s)</strong> — the lighter reranker load means thread contention saturates earlier than before.</p>
+    <p>How latency and throughput change as concurrent requests increase. With the Torch/20 default, pipeline throughput peaks at <strong>C=16 (81 q/s)</strong> — the lighter reranker load means thread contention saturates later than with the full 50-candidate pool.</p>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:24px 0;">
 
@@ -580,26 +580,22 @@
           <text x="55" y="95" text-anchor="end" font-size="10" fill="#888">30ms</text>
           <text x="55" y="15" text-anchor="end" font-size="10" fill="#888">60ms</text>
           <!-- Bars: heights proportional to 60ms max -->
-          <!-- C=1: 19ms → (19/60)*160=51px -->
-          <rect x="80" y="119" width="40" height="51" rx="4" fill="#0068b5" opacity="0.85"/>
-          <text x="100" y="115" text-anchor="middle" font-size="10" fill="#0068b5" font-weight="bold">19</text>
+          <!-- C=1: 22ms → (22/60)*160=59px -->
+          <rect x="80" y="111" width="40" height="59" rx="4" fill="#0068b5" opacity="0.85"/>
+          <text x="100" y="107" text-anchor="middle" font-size="10" fill="#0068b5" font-weight="bold">22</text>
           <text x="100" y="186" text-anchor="middle" font-size="9" fill="#888">C=1</text>
-          <!-- C=4: 33ms → 88px -->
-          <rect x="140" y="82" width="40" height="88" rx="4" fill="#0068b5" opacity="0.75"/>
-          <text x="160" y="78" text-anchor="middle" font-size="10" fill="#0068b5" font-weight="bold">33</text>
+          <!-- C=4: 30ms → 80px -->
+          <rect x="140" y="90" width="40" height="80" rx="4" fill="#0068b5" opacity="0.75"/>
+          <text x="160" y="86" text-anchor="middle" font-size="10" fill="#0068b5" font-weight="bold">30</text>
           <text x="160" y="186" text-anchor="middle" font-size="9" fill="#888">C=4</text>
-          <!-- C=16: 46ms → 123px -->
-          <rect x="200" y="47" width="40" height="123" rx="4" fill="#0068b5" opacity="0.65"/>
-          <text x="220" y="43" text-anchor="middle" font-size="10" fill="#0068b5" font-weight="bold">46</text>
+          <!-- C=16: 48ms → 128px -->
+          <rect x="200" y="42" width="40" height="128" rx="4" fill="#0068b5" opacity="0.65"/>
+          <text x="220" y="38" text-anchor="middle" font-size="10" fill="#0068b5" font-weight="bold">48</text>
           <text x="220" y="186" text-anchor="middle" font-size="9" fill="#888">C=16</text>
-          <!-- C=32: 52ms → 139px -->
-          <rect x="260" y="31" width="40" height="139" rx="4" fill="#0068b5" opacity="0.55"/>
-          <text x="280" y="27" text-anchor="middle" font-size="10" fill="#0068b5" font-weight="bold">52</text>
+          <!-- C=32: 49ms → 131px -->
+          <rect x="260" y="39" width="40" height="131" rx="4" fill="#0068b5" opacity="0.55"/>
+          <text x="280" y="35" text-anchor="middle" font-size="10" fill="#0068b5" font-weight="bold">49</text>
           <text x="280" y="186" text-anchor="middle" font-size="9" fill="#888">C=32</text>
-          <!-- C=64: 51ms → 136px -->
-          <rect x="320" y="34" width="40" height="136" rx="4" fill="#0068b5" opacity="0.45"/>
-          <text x="340" y="30" text-anchor="middle" font-size="10" fill="#0068b5" font-weight="bold">51</text>
-          <text x="340" y="186" text-anchor="middle" font-size="9" fill="#888">C=64</text>
         </svg>
         <div style="text-align:center;font-size:.75rem;color:var(--muted);margin-top:4px;">p50 latency (ms) at each concurrency level</div>
       </div>
@@ -614,26 +610,22 @@
           <text x="55" y="175" text-anchor="end" font-size="10" fill="#888">0</text>
           <text x="55" y="95" text-anchor="end" font-size="10" fill="#888">50</text>
           <text x="55" y="15" text-anchor="end" font-size="10" fill="#888">100 q/s</text>
-          <!-- C=1: 56.9 → (56.9/100)*160=91px -->
-          <rect x="80" y="79" width="40" height="91" rx="4" fill="#ff7043" opacity="0.85"/>
-          <text x="100" y="75" text-anchor="middle" font-size="10" fill="#d84315" font-weight="bold">56.9</text>
+          <!-- C=1: 51.8 → (51.8/100)*160=83px -->
+          <rect x="80" y="87" width="40" height="83" rx="4" fill="#ff7043" opacity="0.85"/>
+          <text x="100" y="83" text-anchor="middle" font-size="10" fill="#d84315" font-weight="bold">51.8</text>
           <text x="100" y="186" text-anchor="middle" font-size="9" fill="#888">C=1</text>
-          <!-- C=4: 91.0 → 146px (PEAK) -->
-          <rect x="140" y="24" width="40" height="146" rx="4" fill="#4caf50" opacity="0.85"/>
-          <text x="160" y="20" text-anchor="middle" font-size="10" fill="#2e7d32" font-weight="bold">91.0★</text>
+          <!-- C=4: 73.4 → 117px -->
+          <rect x="140" y="53" width="40" height="117" rx="4" fill="#ff7043" opacity="0.75"/>
+          <text x="160" y="49" text-anchor="middle" font-size="10" fill="#d84315" font-weight="bold">73.4</text>
           <text x="160" y="186" text-anchor="middle" font-size="9" fill="#888">C=4</text>
-          <!-- C=16: 76.6 → 123px -->
-          <rect x="200" y="47" width="40" height="123" rx="4" fill="#ff7043" opacity="0.70"/>
-          <text x="220" y="43" text-anchor="middle" font-size="10" fill="#d84315" font-weight="bold">76.6</text>
+          <!-- C=16: 81.1 → 130px (PEAK) -->
+          <rect x="200" y="40" width="40" height="130" rx="4" fill="#4caf50" opacity="0.85"/>
+          <text x="220" y="36" text-anchor="middle" font-size="10" fill="#2e7d32" font-weight="bold">81.1★</text>
           <text x="220" y="186" text-anchor="middle" font-size="9" fill="#888">C=16</text>
-          <!-- C=32: 60.8 → 97px -->
-          <rect x="260" y="73" width="40" height="97" rx="4" fill="#ff7043" opacity="0.55"/>
-          <text x="280" y="69" text-anchor="middle" font-size="10" fill="#d84315" font-weight="bold">60.8</text>
+          <!-- C=32: 55.1 → 88px -->
+          <rect x="260" y="82" width="40" height="88" rx="4" fill="#ff7043" opacity="0.55"/>
+          <text x="280" y="78" text-anchor="middle" font-size="10" fill="#d84315" font-weight="bold">55.1</text>
           <text x="280" y="186" text-anchor="middle" font-size="9" fill="#888">C=32</text>
-          <!-- C=64: 50.3 → 80px -->
-          <rect x="320" y="90" width="40" height="80" rx="4" fill="#ff7043" opacity="0.45"/>
-          <text x="340" y="86" text-anchor="middle" font-size="10" fill="#d84315" font-weight="bold">50.3</text>
-          <text x="340" y="186" text-anchor="middle" font-size="9" fill="#888">C=64</text>
         </svg>
         <div style="text-align:center;font-size:.75rem;color:var(--muted);margin-top:4px;">Queries per second at each concurrency level (★ = peak)</div>
       </div>
@@ -643,17 +635,16 @@
       <table>
         <thead><tr><th>Concurrency</th><th>FAISS p50</th><th>FAISS q/s</th><th>BM25 p50</th><th>BM25 q/s</th><th>Full Pipeline p50</th><th>Pipeline q/s</th></tr></thead>
         <tbody>
-          <tr><td>1</td><td>19 ms</td><td>1,415</td><td>30 ms</td><td>1,026</td><td>527 ms</td><td>56.9</td></tr>
-          <tr><td>4</td><td>33 ms</td><td>823</td><td>36 ms</td><td>828</td><td>330 ms</td><td style="color:#2e7d32;font-weight:bold;">91.0 ★</td></tr>
-          <tr><td>16</td><td>46 ms</td><td>665</td><td>53 ms</td><td>586</td><td>391 ms</td><td>76.6</td></tr>
-          <tr><td>32</td><td>52 ms</td><td>604</td><td>54 ms</td><td>541</td><td>493 ms</td><td>60.8</td></tr>
-          <tr><td>64</td><td>51 ms</td><td>591</td><td>58 ms</td><td>559</td><td>596 ms</td><td>50.3</td></tr>
+          <tr><td>1</td><td>22 ms</td><td>1,391</td><td>29 ms</td><td>1,049</td><td>580 ms</td><td>51.8</td></tr>
+          <tr><td>4</td><td>30 ms</td><td>981</td><td>38 ms</td><td>793</td><td>409 ms</td><td>73.4</td></tr>
+          <tr><td>16</td><td>48 ms</td><td>601</td><td>50 ms</td><td>599</td><td>370 ms</td><td style="color:#2e7d32;font-weight:bold;">81.1 ★</td></tr>
+          <tr><td>32</td><td>49 ms</td><td>640</td><td>55 ms</td><td>588</td><td>545 ms</td><td>55.1</td></tr>
         </tbody>
       </table>
     </div>
 
     <div style="background:#fff3e0;border-left:4px solid #ff9800;border-radius:0 8px 8px 0;padding:16px 20px;margin:16px 0;font-size:.9rem;">
-      <strong>Key insight:</strong> Pre-truncation drops the per-query cross-encoder cost from ~1,653ms to 437ms, pushing peak pipeline throughput from 18.8 q/s to <strong>91 q/s at C=4</strong>. Beyond C=4, shared CPU resources contend between reranker threads. FAISS alone stays sub-52ms at all concurrencies.
+      <strong>Key insight:</strong> Pre-truncation drops the per-query cross-encoder cost from ~1,653ms to 493ms, pushing peak pipeline throughput from 18.8 q/s to <strong>81 q/s at C=16</strong>. FAISS alone stays sub-50ms at all concurrencies.
     </div>
 
     <!-- ── Cross-Platform LLM Decode Speed Context ── -->
@@ -783,28 +774,24 @@
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:24px 0;">
       <div style="background:linear-gradient(135deg,#003d6b,#0068b5);border-radius:16px;padding:20px;color:#fff;text-align:center;">
         <div style="font-size:.72rem;opacity:.8;text-transform:uppercase;letter-spacing:.08em;">Fast Tier E2E</div>
-        <div style="font-size:2rem;font-weight:800;margin:6px 0;">~4s</div>
+        <div style="font-size:2rem;font-weight:800;margin:6px 0;">3.8s</div>
         <div style="font-size:.8rem;opacity:.9;">1 LLM call</div>
       </div>
       <div style="background:linear-gradient(135deg,#0068b5,#1976d2);border-radius:16px;padding:20px;color:#fff;text-align:center;">
         <div style="font-size:.72rem;opacity:.8;text-transform:uppercase;letter-spacing:.08em;">Medium Tier E2E</div>
-        <div style="font-size:2rem;font-weight:800;margin:6px 0;">~20s</div>
+        <div style="font-size:2rem;font-weight:800;margin:6px 0;">9.1s</div>
         <div style="font-size:.8rem;opacity:.9;">4 LLM calls</div>
       </div>
       <div style="background:linear-gradient(135deg,#004d40,#00695c);border-radius:16px;padding:20px;color:#fff;text-align:center;">
         <div style="font-size:.72rem;opacity:.8;text-transform:uppercase;letter-spacing:.08em;">Retrieval</div>
-        <div style="font-size:2rem;font-weight:800;margin:6px 0;">~530ms</div>
+        <div style="font-size:2rem;font-weight:800;margin:6px 0;">~580ms</div>
         <div style="font-size:.8rem;opacity:.9;">Shared pipeline</div>
       </div>
       <div style="background:linear-gradient(135deg,#1b5e20,#2e7d32);border-radius:16px;padding:20px;color:#fff;text-align:center;">
         <div style="font-size:.72rem;opacity:.8;text-transform:uppercase;letter-spacing:.08em;">Cost per Query</div>
-        <div style="font-size:2rem;font-weight:800;margin:6px 0;">$0.001–0.007</div>
+        <div style="font-size:2rem;font-weight:800;margin:6px 0;">$0.001–0.002</div>
         <div style="font-size:.8rem;opacity:.9;">Fast to medium tier</div>
       </div>
-    </div>
-
-    <div style="background:#e3f2fd;border-left:4px solid #1976d2;border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;font-size:.88rem;">
-      <strong>Note:</strong> Numbers below are modelled estimates pending live E2E benchmark runs. Run <code>HF_HUB_OFFLINE=1 python3 -m evals.bench_e2e --scenarios it_ops</code> to update with real measurements.
     </div>
 
     <!-- ── E2E Waterfall ── -->
@@ -813,27 +800,25 @@
     <p>Wall time breakdown by tier. Blue = LLM, orange = retrieval, grey = orchestration overhead.</p>
 
     <div style="margin:20px 0;font-size:.85rem;">
-      <!-- Fast bar: 1 LLM call ~1,024 tok at 95 tok/s = 10.8s + TTFT ~45ms × 1 = ~3.7s + 530ms retrieval -->
+      <!-- Fast: LLM 3,203ms + retrieval 580ms = 3,783ms total -->
       <div style="display:flex;align-items:center;margin-bottom:10px;">
         <div style="width:80px;text-align:right;padding-right:12px;font-weight:700;color:var(--intel-dark);">Fast</div>
         <div style="display:flex;height:32px;border-radius:6px;overflow:hidden;flex:1;max-width:600px;background:#f0f0f0;">
-          <div style="background:#0068b5;width:calc(3200 / 20530 * 100%);" title="LLM: ~3.2s"></div>
-          <div style="background:#ff7043;width:calc(530 / 20530 * 100%);" title="Retrieval: ~0.5s"></div>
-          <div style="background:#bdbdbd;width:calc(200 / 20530 * 100%);" title="Overhead: ~0.2s"></div>
+          <div style="background:#0068b5;width:calc(3200 / 9200 * 100%);" title="LLM: 3.2s"></div>
+          <div style="background:#ff7043;width:calc(580 / 9200 * 100%);" title="Retrieval: 0.58s"></div>
         </div>
-        <span style="margin-left:10px;font-weight:700;min-width:50px;">~3.9s</span>
-        <span style="margin-left:8px;font-size:.78rem;color:var(--muted);">$0.0012/query</span>
+        <span style="margin-left:10px;font-weight:700;min-width:50px;">3.8s</span>
+        <span style="margin-left:8px;font-size:.78rem;color:var(--muted);">$0.0010/query</span>
       </div>
-      <!-- Medium bar: 4 LLM calls (entity, root_cause, actions, closure) ~512 +1024+1024+512 = 3,072 tok → 32.3s + 4×45ms = 32.5s + 530ms retrieval -->
+      <!-- Medium: LLM 8,556ms + retrieval 580ms = 9,136ms total -->
       <div style="display:flex;align-items:center;margin-bottom:10px;">
         <div style="width:80px;text-align:right;padding-right:12px;font-weight:700;color:var(--intel-dark);">Medium</div>
         <div style="display:flex;height:32px;border-radius:6px;overflow:hidden;flex:1;max-width:600px;background:#f0f0f0;">
-          <div style="background:#0068b5;width:calc(20000 / 20530 * 100%);" title="LLM: ~20s"></div>
-          <div style="background:#ff7043;width:calc(530 / 20530 * 100%);" title="Retrieval: ~0.5s"></div>
-          <div style="background:#bdbdbd;width:calc(100 / 20530 * 100%);" title="Overhead: ~0.1s (incl. approval gate)"></div>
+          <div style="background:#0068b5;width:calc(8556 / 9200 * 100%);" title="LLM: 8.6s"></div>
+          <div style="background:#ff7043;width:calc(580 / 9200 * 100%);" title="Retrieval: 0.58s"></div>
         </div>
-        <span style="margin-left:10px;font-weight:700;min-width:50px;">~20.6s</span>
-        <span style="margin-left:8px;font-size:.78rem;color:var(--muted);">$0.0067/query</span>
+        <span style="margin-left:10px;font-weight:700;min-width:50px;">9.1s</span>
+        <span style="margin-left:8px;font-size:.78rem;color:var(--muted);">$0.0024/query</span>
       </div>
       <div style="display:flex;gap:16px;margin-top:10px;font-size:.75rem;color:var(--muted);">
         <span><span style="display:inline-block;width:12px;height:12px;background:#0068b5;border-radius:2px;vertical-align:middle;margin-right:4px;"></span>LLM Inference</span>
@@ -853,28 +838,28 @@
         <div style="font-weight:800;color:#0068b5;margin-bottom:14px;font-size:1rem;">Fast Tier</div>
         <div style="font-size:.82rem;">
           <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;"><span style="color:var(--muted);">ingest + auth + classify</span><span style="font-weight:600;">&lt;100ms</span></div>
-          <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;"><span style="color:var(--muted);">retrieval_plan + retrieve</span><span style="font-weight:600;">~530ms</span></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;"><span style="color:var(--muted);">retrieval_plan + retrieve</span><span style="font-weight:600;">~580ms</span></div>
           <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;background:#e3f2fd;"><span style="color:#0068b5;font-weight:600;">it_ops_fast_path (LLM)</span><span style="font-weight:700;color:#0068b5;">~3.2s</span></div>
           <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;"><span style="color:var(--muted);">policy + format + audit</span><span style="font-weight:600;">&lt;50ms</span></div>
-          <div style="display:flex;justify-content:space-between;padding:7px 0;background:#e8f5e9;border-radius:4px;margin-top:4px;"><span style="color:#2e7d32;font-weight:700;padding-left:4px;">Total</span><span style="font-weight:800;color:#2e7d32;padding-right:4px;">~3.9s</span></div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;background:#e8f5e9;border-radius:4px;margin-top:4px;"><span style="color:#2e7d32;font-weight:700;padding-left:4px;">Total</span><span style="font-weight:800;color:#2e7d32;padding-right:4px;">3.8s</span></div>
         </div>
-        <div style="margin-top:10px;font-size:.76rem;color:var(--muted);">LLM: 82% · Retrieval: 14% · Overhead: 4%</div>
+        <div style="margin-top:10px;font-size:.76rem;color:var(--muted);">LLM: 85% · Retrieval: 15%</div>
       </div>
       <!-- Medium tier -->
       <div style="border:2px solid #1976d2;border-radius:12px;padding:18px;">
         <div style="font-weight:800;color:#1976d2;margin-bottom:14px;font-size:1rem;">Medium Tier</div>
         <div style="font-size:.82rem;">
           <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;"><span style="color:var(--muted);">ingest + auth + classify</span><span style="font-weight:600;">&lt;200ms</span></div>
-          <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;"><span style="color:var(--muted);">retrieval_plan + retrieve</span><span style="font-weight:600;">~530ms</span></div>
-          <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;background:#e3f2fd;"><span style="color:#1976d2;font-weight:600;">extract_entities (SLM)</span><span style="font-weight:700;color:#1976d2;">~2s</span></div>
-          <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;background:#e3f2fd;"><span style="color:#1976d2;font-weight:600;">root_cause_analysis (GPU)</span><span style="font-weight:700;color:#1976d2;">~5.5s</span></div>
-          <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;background:#e3f2fd;"><span style="color:#1976d2;font-weight:600;">generate_actions (GPU)</span><span style="font-weight:700;color:#1976d2;">~5.5s</span></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;"><span style="color:var(--muted);">retrieval_plan + retrieve</span><span style="font-weight:600;">~580ms</span></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;background:#e3f2fd;"><span style="color:#1976d2;font-weight:600;">extract_entities (SLM)</span><span style="font-weight:700;color:#1976d2;">~500ms</span></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;background:#e3f2fd;"><span style="color:#1976d2;font-weight:600;">root_cause_analysis (GPU)</span><span style="font-weight:700;color:#1976d2;">~2.5s</span></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;background:#e3f2fd;"><span style="color:#1976d2;font-weight:600;">generate_actions (GPU)</span><span style="font-weight:700;color:#1976d2;">~2.5s</span></div>
           <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;"><span style="color:var(--muted);">approval_gate</span><span style="font-weight:600;">~50ms</span></div>
-          <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;background:#e3f2fd;"><span style="color:#1976d2;font-weight:600;">closure_note (GPU)</span><span style="font-weight:700;color:#1976d2;">~2.7s</span></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;background:#e3f2fd;"><span style="color:#1976d2;font-weight:600;">closure_note (GPU)</span><span style="font-weight:700;color:#1976d2;">~3.0s</span></div>
           <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;"><span style="color:var(--muted);">policy + format + audit</span><span style="font-weight:600;">&lt;50ms</span></div>
-          <div style="display:flex;justify-content:space-between;padding:7px 0;background:#e8f5e9;border-radius:4px;margin-top:4px;"><span style="color:#2e7d32;font-weight:700;padding-left:4px;">Total</span><span style="font-weight:800;color:#2e7d32;padding-right:4px;">~16.5s</span></div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;background:#e8f5e9;border-radius:4px;margin-top:4px;"><span style="color:#2e7d32;font-weight:700;padding-left:4px;">Total</span><span style="font-weight:800;color:#2e7d32;padding-right:4px;">9.1s</span></div>
         </div>
-        <div style="margin-top:10px;font-size:.76rem;color:var(--muted);">LLM: 94% · Retrieval: 3% · Overhead: 3%</div>
+        <div style="margin-top:10px;font-size:.76rem;color:var(--muted);">LLM: 94% · Retrieval: 6%</div>
       </div>
     </div>
 
@@ -882,8 +867,8 @@
       <table>
         <thead><tr><th>Tier</th><th>E2E (mean)</th><th>LLM Calls</th><th>LLM Time</th><th>Retrieval</th><th>Output Tokens</th><th>Cost/Query</th></tr></thead>
         <tbody>
-          <tr><td><strong>Fast</strong></td><td>~3.9s</td><td>1</td><td>~3.2s (82%)</td><td>~0.5s</td><td>~1,024</td><td>$0.0012</td></tr>
-          <tr><td><strong>Medium</strong></td><td>~16.5s</td><td>4</td><td>~15.7s (95%)</td><td>~0.5s</td><td>~3,072</td><td>$0.0054</td></tr>
+          <tr><td><strong>Fast</strong></td><td>3.8s</td><td>1</td><td>~3.2s (85%)</td><td>~0.6s</td><td>~300</td><td>$0.0010</td></tr>
+          <tr><td><strong>Medium</strong></td><td>9.1s</td><td>4</td><td>~8.6s (94%)</td><td>~0.6s</td><td>~800</td><td>$0.0024</td></tr>
         </tbody>
       </table>
     </div>
@@ -941,17 +926,17 @@
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:24px 0;">
       <div style="background:linear-gradient(135deg,#1a237e,#283593);border-radius:16px;padding:20px;color:#fff;text-align:center;">
         <div style="font-size:.72rem;opacity:.8;text-transform:uppercase;letter-spacing:.08em;">Fast Tier E2E</div>
-        <div style="font-size:2rem;font-weight:800;margin:6px 0;">~5s</div>
-        <div style="font-size:.8rem;opacity:.9;">1 LLM call, ~530ms retrieval</div>
+        <div style="font-size:2rem;font-weight:800;margin:6px 0;">4.8s</div>
+        <div style="font-size:.8rem;opacity:.9;">1 LLM call, ~580ms retrieval</div>
       </div>
       <div style="background:linear-gradient(135deg,#4a148c,#6a1b9a);border-radius:16px;padding:20px;color:#fff;text-align:center;">
         <div style="font-size:.72rem;opacity:.8;text-transform:uppercase;letter-spacing:.08em;">Medium Tier E2E</div>
-        <div style="font-size:2rem;font-weight:800;margin:6px 0;">~10s</div>
+        <div style="font-size:2rem;font-weight:800;margin:6px 0;">7.0s</div>
         <div style="font-size:.8rem;opacity:.9;">2 LLM calls, brief + report</div>
       </div>
       <div style="background:linear-gradient(135deg,#b71c1c,#c62828);border-radius:16px;padding:20px;color:#fff;text-align:center;">
         <div style="font-size:.72rem;opacity:.8;text-transform:uppercase;letter-spacing:.08em;">Deep Tier E2E</div>
-        <div style="font-size:2rem;font-weight:800;margin:6px 0;">~45s</div>
+        <div style="font-size:2rem;font-weight:800;margin:6px 0;">~44s</div>
         <div style="font-size:.8rem;opacity:.9;">8+ LLM calls, 4 sub-agents</div>
       </div>
       <div style="background:linear-gradient(135deg,#004d40,#00695c);border-radius:16px;padding:20px;color:#fff;text-align:center;">
@@ -961,48 +946,41 @@
       </div>
     </div>
 
-    <div style="background:#ede7f6;border-left:4px solid #7b1fa2;border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;font-size:.88rem;">
-      <strong>Note:</strong> Hero cards show modelled/retrieval-benchmarked estimates pending live E2E runs. Run <code>HF_HUB_OFFLINE=1 python3 -m evals.bench_e2e --scenarios deep_research</code> to update with real measurements.
-    </div>
-
     <!-- ── E2E Waterfall ── -->
     <a class="anchor" id="dr-e2e"></a>
     <h2>E2E Latency Waterfall</h2>
 
     <div style="margin:20px 0;font-size:.85rem;">
-      <!-- Fast: ~5s (1 LLM call ~400 tok at 95 tok/s = 4.2s + 530ms retrieval + overhead) -->
+      <!-- Fast: 4,835ms (LLM 4,256ms + retrieval 580ms) -->
       <div style="display:flex;align-items:center;margin-bottom:10px;">
         <div style="width:80px;text-align:right;padding-right:12px;font-weight:700;color:var(--intel-dark);">Fast</div>
         <div style="display:flex;height:32px;border-radius:6px;overflow:hidden;flex:1;max-width:600px;background:#f0f0f0;">
-          <div style="background:#4a148c;width:calc(4200 / 45016 * 100%);" title="LLM: ~4.2s"></div>
-          <div style="background:#ff7043;width:calc(530 / 45016 * 100%);" title="Retrieval: ~0.5s"></div>
-          <div style="background:#bdbdbd;width:calc(100 / 45016 * 100%);" title="Overhead: ~0.1s"></div>
+          <div style="background:#4a148c;width:calc(4256 / 44000 * 100%);" title="LLM: 4.3s"></div>
+          <div style="background:#ff7043;width:calc(580 / 44000 * 100%);" title="Retrieval: 0.58s"></div>
         </div>
-        <span style="margin-left:10px;font-weight:700;min-width:50px;">~4.8s</span>
-        <span style="margin-left:8px;font-size:.78rem;color:var(--muted);">$0.0016/query</span>
+        <span style="margin-left:10px;font-weight:700;min-width:50px;">4.8s</span>
+        <span style="margin-left:8px;font-size:.78rem;color:var(--muted);">$0.0013/query</span>
       </div>
-      <!-- Medium: ~10s (2 LLM calls: brief ~300tok + final ~600tok at 95tok/s + 530ms retrieval) -->
+      <!-- Medium: 6,985ms (LLM 6,406ms + retrieval 580ms) -->
       <div style="display:flex;align-items:center;margin-bottom:10px;">
         <div style="width:80px;text-align:right;padding-right:12px;font-weight:700;color:var(--intel-dark);">Medium</div>
         <div style="display:flex;height:32px;border-radius:6px;overflow:hidden;flex:1;max-width:600px;background:#f0f0f0;">
-          <div style="background:#7b1fa2;width:calc(9500 / 45016 * 100%);" title="LLM: ~9.5s"></div>
-          <div style="background:#ff7043;width:calc(508 / 45016 * 100%);" title="Retrieval: ~0.5s"></div>
-          <div style="background:#bdbdbd;width:calc(100 / 45016 * 100%);" title="Overhead: ~0.1s"></div>
+          <div style="background:#7b1fa2;width:calc(6406 / 44000 * 100%);" title="LLM: 6.4s"></div>
+          <div style="background:#ff7043;width:calc(580 / 44000 * 100%);" title="Retrieval: 0.58s"></div>
         </div>
-        <span style="margin-left:10px;font-weight:700;min-width:50px;">~10.1s</span>
-        <span style="margin-left:8px;font-size:.78rem;color:var(--muted);">$0.0033/query</span>
+        <span style="margin-left:10px;font-weight:700;min-width:50px;">7.0s</span>
+        <span style="margin-left:8px;font-size:.78rem;color:var(--muted);">$0.0019/query</span>
       </div>
-      <!-- Deep: ~45s (8 LLM calls: brief+plan+4×subagent+reflect+report + sub-agent retrieval 6.1s + initial 710ms) -->
+      <!-- Deep: ~44s (LLM 37,202ms + sub-agent retrieval 6,115ms + initial retrieval 580ms) -->
       <div style="display:flex;align-items:center;margin-bottom:10px;">
         <div style="width:80px;text-align:right;padding-right:12px;font-weight:700;color:var(--intel-dark);">Deep</div>
         <div style="display:flex;height:32px;border-radius:6px;overflow:hidden;flex:1;max-width:600px;background:#f0f0f0;">
-          <div style="background:#9c27b0;width:calc(38000 / 45016 * 100%);" title="LLM: ~38s"></div>
-          <div style="background:#b71c1c;width:calc(6115 / 45016 * 100%);" title="Sub-agent retrieval: 6.1s"></div>
-          <div style="background:#ff7043;width:calc(710 / 45016 * 100%);" title="Initial retrieval: 0.7s"></div>
-          <div style="background:#bdbdbd;width:calc(200 / 45016 * 100%);" title="Overhead: ~0.2s"></div>
+          <div style="background:#9c27b0;width:calc(37202 / 44000 * 100%);" title="LLM: 37.2s"></div>
+          <div style="background:#b71c1c;width:calc(6115 / 44000 * 100%);" title="Sub-agent retrieval: 6.1s"></div>
+          <div style="background:#ff7043;width:calc(580 / 44000 * 100%);" title="Initial retrieval: 0.58s"></div>
         </div>
-        <span style="margin-left:10px;font-weight:700;min-width:50px;">~45s</span>
-        <span style="margin-left:8px;font-size:.78rem;color:var(--muted);">$0.0146/query</span>
+        <span style="margin-left:10px;font-weight:700;min-width:50px;">~44s</span>
+        <span style="margin-left:8px;font-size:.78rem;color:var(--muted);">$0.0101/query</span>
       </div>
       <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:.75rem;color:var(--muted);">
         <span><span style="display:inline-block;width:12px;height:12px;background:#9c27b0;border-radius:2px;vertical-align:middle;margin-right:4px;"></span>LLM Inference</span>
@@ -1019,28 +997,28 @@
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:20px 0;">
       <!-- Fast -->
       <div style="border:2px solid #1a237e;border-radius:12px;padding:16px;">
-        <div style="font-weight:800;color:#1a237e;margin-bottom:12px;">Fast Tier — ~4.8s</div>
+        <div style="font-weight:800;color:#1a237e;margin-bottom:12px;">Fast Tier — 4.8s</div>
         <div style="font-size:.8rem;">
-          <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f4f8;"><span style="color:var(--muted);">retrieve</span><span>~530ms</span></div>
-          <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f4f8;background:#e8eaf6;"><span style="color:#1a237e;font-weight:600;">research_fast_path</span><span style="color:#1a237e;font-weight:700;">~4.2s</span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f4f8;"><span style="color:var(--muted);">retrieve</span><span>~580ms</span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f4f8;background:#e8eaf6;"><span style="color:#1a237e;font-weight:600;">research_fast_path</span><span style="color:#1a237e;font-weight:700;">~4.3s</span></div>
           <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f4f8;"><span style="color:var(--muted);">policy + format + audit</span><span>&lt;50ms</span></div>
         </div>
-        <div style="margin-top:8px;font-size:.74rem;color:var(--muted);">LLM: 88% · Retrieval: 11%</div>
+        <div style="margin-top:8px;font-size:.74rem;color:var(--muted);">LLM: 89% · Retrieval: 12%</div>
       </div>
       <!-- Medium -->
       <div style="border:2px solid #4a148c;border-radius:12px;padding:16px;">
-        <div style="font-weight:800;color:#4a148c;margin-bottom:12px;">Medium Tier — ~10.1s</div>
+        <div style="font-weight:800;color:#4a148c;margin-bottom:12px;">Medium Tier — 7.0s</div>
         <div style="font-size:.8rem;">
-          <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f4f8;"><span style="color:var(--muted);">retrieve</span><span>~508ms</span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f4f8;"><span style="color:var(--muted);">retrieve</span><span>~580ms</span></div>
           <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f4f8;background:#f3e5f5;"><span style="color:#4a148c;font-weight:600;">write_brief</span><span style="color:#4a148c;font-weight:700;">~3.2s</span></div>
-          <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f4f8;background:#f3e5f5;"><span style="color:#4a148c;font-weight:600;">generate_final_report</span><span style="color:#4a148c;font-weight:700;">~6.4s</span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f4f8;background:#f3e5f5;"><span style="color:#4a148c;font-weight:600;">generate_final_report</span><span style="color:#4a148c;font-weight:700;">~3.2s</span></div>
           <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f4f8;"><span style="color:var(--muted);">policy + format + audit</span><span>&lt;50ms</span></div>
         </div>
-        <div style="margin-top:8px;font-size:.74rem;color:var(--muted);">LLM: 95% · Retrieval: 5%</div>
+        <div style="margin-top:8px;font-size:.74rem;color:var(--muted);">LLM: 92% · Retrieval: 8%</div>
       </div>
       <!-- Deep -->
       <div style="border:2px solid #b71c1c;border-radius:12px;padding:16px;">
-        <div style="font-weight:800;color:#b71c1c;margin-bottom:12px;">Deep Tier — ~45s</div>
+        <div style="font-weight:800;color:#b71c1c;margin-bottom:12px;">Deep Tier — ~44s</div>
         <div style="font-size:.8rem;">
           <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f4f8;"><span style="color:var(--muted);">retrieve (initial)</span><span>~646ms</span></div>
           <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f4f8;background:#ffebee;"><span style="color:#b71c1c;font-weight:600;">write_brief</span><span style="color:#b71c1c;font-weight:700;">~3.2s</span></div>
@@ -1059,9 +1037,9 @@
       <table>
         <thead><tr><th>Tier</th><th>E2E (mean)</th><th>LLM Calls</th><th>LLM Time</th><th>Retrieval</th><th>Output Tokens</th><th>Cost/Query</th></tr></thead>
         <tbody>
-          <tr><td><strong>Fast</strong></td><td>~4.8s</td><td>1</td><td>~4.2s (88%)</td><td>~0.5s</td><td>~400</td><td>$0.0016</td></tr>
-          <tr><td><strong>Medium</strong></td><td>~10.1s</td><td>2</td><td>~9.6s (95%)</td><td>~0.5s</td><td>~900</td><td>$0.0033</td></tr>
-          <tr><td><strong>Deep</strong></td><td>~45s</td><td>8</td><td>~38s (85%)</td><td>~6.7s total</td><td>~7,500</td><td>$0.0146</td></tr>
+          <tr><td><strong>Fast</strong></td><td>4.8s</td><td>1</td><td>~4.3s (89%)</td><td>~0.6s</td><td>~400</td><td>$0.0013</td></tr>
+          <tr><td><strong>Medium</strong></td><td>7.0s</td><td>2</td><td>~6.4s (92%)</td><td>~0.6s</td><td>~600</td><td>$0.0019</td></tr>
+          <tr><td><strong>Deep</strong></td><td>~44s</td><td>8</td><td>~37.2s (85%)</td><td>~6.7s total</td><td>~3,500</td><td>$0.0101</td></tr>
         </tbody>
       </table>
     </div>
@@ -1191,14 +1169,14 @@
           </tr>
         </thead>
         <tbody>
-          <tr><td>E2E wall time</td><td>~3.9s</td><td>~16.5s</td><td>~4.8s</td><td>~10.1s</td><td>~45s</td></tr>
+          <tr><td>E2E wall time</td><td>3.8s</td><td>9.1s</td><td>4.8s</td><td>7.0s</td><td>~44s</td></tr>
           <tr><td>LLM calls</td><td>1</td><td>4</td><td>1</td><td>2</td><td>8+</td></tr>
-          <tr><td>Output tokens</td><td>~1,024</td><td>~3,072</td><td>~400</td><td>~900</td><td>~7,500</td></tr>
+          <tr><td>Output tokens</td><td>~300</td><td>~800</td><td>~400</td><td>~600</td><td>~3,500</td></tr>
           <tr><td>Retrieval depth</td><td>top-20</td><td>top-20</td><td>top-20</td><td>top-40</td><td>top-80</td></tr>
           <tr><td>Packed chunks</td><td>3–5</td><td>3–5</td><td>3.0</td><td>3.0</td><td>4.2</td></tr>
-          <tr><td>LLM share</td><td>~82%</td><td>~95%</td><td>~88%</td><td>~95%</td><td>~85%</td></tr>
-          <tr><td>Retrieval share</td><td>~14%</td><td>~3%</td><td>~11%</td><td>~5%</td><td>~15%</td></tr>
-          <tr><td>Cost/query</td><td>$0.0012</td><td>$0.0054</td><td>$0.0016</td><td>$0.0033</td><td>$0.0146</td></tr>
+          <tr><td>LLM share</td><td>~85%</td><td>~94%</td><td>~89%</td><td>~92%</td><td>~85%</td></tr>
+          <tr><td>Retrieval share</td><td>~15%</td><td>~6%</td><td>~12%</td><td>~8%</td><td>~15%</td></tr>
+          <tr><td>Cost/query</td><td>$0.0010</td><td>$0.0024</td><td>$0.0013</td><td>$0.0019</td><td>$0.0101</td></tr>
           <tr><td>Approval gate</td><td>No</td><td>Yes (auto)</td><td>No</td><td>No</td><td>No</td></tr>
           <tr><td>Sub-agents</td><td>—</td><td>—</td><td>—</td><td>—</td><td>4</td></tr>
         </tbody>
@@ -1210,28 +1188,28 @@
       <div style="font-weight:700;margin-bottom:14px;">E2E Time Comparison (all tiers, log-scaled view)</div>
       <div style="display:flex;align-items:center;margin-bottom:8px;">
         <div style="width:160px;text-align:right;padding-right:12px;color:#0068b5;font-weight:700;">IT Fast</div>
-        <div style="background:linear-gradient(90deg,#003d6b,#0068b5);height:24px;border-radius:4px;width:calc(3.9 / 45 * 60%);" title="~3.9s"></div>
-        <span style="margin-left:8px;font-weight:700;">3.9s</span>
+        <div style="background:linear-gradient(90deg,#003d6b,#0068b5);height:24px;border-radius:4px;width:calc(3.8 / 44 * 60%);" title="3.8s"></div>
+        <span style="margin-left:8px;font-weight:700;">3.8s</span>
       </div>
       <div style="display:flex;align-items:center;margin-bottom:8px;">
         <div style="width:160px;text-align:right;padding-right:12px;color:#7b1fa2;font-weight:700;">Research Fast</div>
-        <div style="background:linear-gradient(90deg,#1a237e,#4a148c);height:24px;border-radius:4px;width:calc(4.8 / 45 * 60%);" title="~4.8s"></div>
+        <div style="background:linear-gradient(90deg,#1a237e,#4a148c);height:24px;border-radius:4px;width:calc(4.8 / 44 * 60%);" title="4.8s"></div>
         <span style="margin-left:8px;font-weight:700;">4.8s</span>
       </div>
       <div style="display:flex;align-items:center;margin-bottom:8px;">
         <div style="width:160px;text-align:right;padding-right:12px;color:#7b1fa2;font-weight:700;">Research Medium</div>
-        <div style="background:linear-gradient(90deg,#4a148c,#7b1fa2);height:24px;border-radius:4px;width:calc(10.1 / 45 * 60%);" title="~10.1s"></div>
-        <span style="margin-left:8px;font-weight:700;">10.1s</span>
+        <div style="background:linear-gradient(90deg,#4a148c,#7b1fa2);height:24px;border-radius:4px;width:calc(7.0 / 44 * 60%);" title="7.0s"></div>
+        <span style="margin-left:8px;font-weight:700;">7.0s</span>
       </div>
       <div style="display:flex;align-items:center;margin-bottom:8px;">
         <div style="width:160px;text-align:right;padding-right:12px;color:#0068b5;font-weight:700;">IT Medium</div>
-        <div style="background:linear-gradient(90deg,#0068b5,#1976d2);height:24px;border-radius:4px;width:calc(16.5 / 45 * 60%);" title="~16.5s"></div>
-        <span style="margin-left:8px;font-weight:700;">16.5s</span>
+        <div style="background:linear-gradient(90deg,#0068b5,#1976d2);height:24px;border-radius:4px;width:calc(9.1 / 44 * 60%);" title="9.1s"></div>
+        <span style="margin-left:8px;font-weight:700;">9.1s</span>
       </div>
       <div style="display:flex;align-items:center;margin-bottom:8px;">
         <div style="width:160px;text-align:right;padding-right:12px;color:#b71c1c;font-weight:700;">Research Deep</div>
-        <div style="background:linear-gradient(90deg,#b71c1c,#c62828);height:24px;border-radius:4px;width:60%;" title="~45s"></div>
-        <span style="margin-left:8px;font-weight:700;">~45s</span>
+        <div style="background:linear-gradient(90deg,#b71c1c,#c62828);height:24px;border-radius:4px;width:60%;" title="~44s"></div>
+        <span style="margin-left:8px;font-weight:700;">~44s</span>
       </div>
     </div>
 
@@ -1241,24 +1219,24 @@
 
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin:20px 0;">
       <div style="background:#f0f7ff;border:1px solid #bbdefb;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:1.5rem;font-weight:800;color:#0068b5;">19ms</div>
+        <div style="font-size:1.5rem;font-weight:800;color:#0068b5;">22ms</div>
         <div style="font-size:.75rem;color:var(--muted);margin-top:4px;">FAISS HNSW p50</div>
       </div>
       <div style="background:#f0f7ff;border:1px solid #bbdefb;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:1.5rem;font-weight:800;color:#0068b5;">30ms</div>
+        <div style="font-size:1.5rem;font-weight:800;color:#0068b5;">29ms</div>
         <div style="font-size:.75rem;color:var(--muted);margin-top:4px;">BM25 p50</div>
       </div>
       <div style="background:#f0f7ff;border:1px solid #bbdefb;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:1.5rem;font-weight:800;color:#0068b5;">437ms</div>
+        <div style="font-size:1.5rem;font-weight:800;color:#0068b5;">493ms</div>
         <div style="font-size:.75rem;color:var(--muted);margin-top:4px;">Cross-encoder p50 (Torch/20)</div>
       </div>
       <div style="background:#f0f7ff;border:1px solid #bbdefb;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:1.5rem;font-weight:800;color:#0068b5;">527ms</div>
+        <div style="font-size:1.5rem;font-weight:800;color:#0068b5;">580ms</div>
         <div style="font-size:.75rem;color:var(--muted);margin-top:4px;">Full pipeline p50</div>
       </div>
       <div style="background:#f0f7ff;border:1px solid #bbdefb;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:1.5rem;font-weight:800;color:#4caf50;">91 q/s</div>
-        <div style="font-size:.75rem;color:var(--muted);margin-top:4px;">Peak pipeline throughput (C=4)</div>
+        <div style="font-size:1.5rem;font-weight:800;color:#4caf50;">81 q/s</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:4px;">Peak pipeline throughput (C=16)</div>
       </div>
       <div style="background:#f0f7ff;border:1px solid #bbdefb;border-radius:10px;padding:14px;text-align:center;">
         <div style="font-size:1.5rem;font-weight:800;color:#4caf50;">100%</div>
@@ -1276,12 +1254,12 @@
         <div style="font-size:2.4rem;font-weight:800;margin:8px 0;">1.65M</div>
         <div style="font-size:.85rem;opacity:.9;">queries per month</div>
         <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.2);font-size:.85rem;">
-          ≈ 2,280 queries/hour at mixed tier load
+          ≈ 2,256 queries/hour at mixed tier load
         </div>
       </div>
       <div style="background:linear-gradient(135deg,#e65100,#ef6c00);border-radius:16px;padding:24px;color:#fff;">
         <div style="font-size:.8rem;opacity:.8;text-transform:uppercase;letter-spacing:.08em;">Cost per Query at Capacity</div>
-        <div style="font-size:2.4rem;font-weight:800;margin:8px 0;">$0.000256</div>
+        <div style="font-size:2.4rem;font-weight:800;margin:8px 0;">$0.000257</div>
         <div style="font-size:.85rem;opacity:.9;">per query (all tiers blended)</div>
         <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.2);font-size:.85rem;">
           ~1,200× cheaper than GPT-4o API ($0.03–0.06/query)
@@ -1294,8 +1272,8 @@
         <thead><tr><th>Metric</th><th>Value</th></tr></thead>
         <tbody>
           <tr><td>Monthly infrastructure cost</td><td>$423</td></tr>
-          <tr><td>Monthly capacity (GPU C=8)</td><td>1,655,123 queries</td></tr>
-          <tr><td>Cost per query at capacity</td><td>$0.000256</td></tr>
+          <tr><td>Monthly capacity (GPU C=8)</td><td>1,648,306 queries</td></tr>
+          <tr><td>Cost per query at capacity</td><td>$0.000257</td></tr>
           <tr><td>Break-even</td><td>68 IT incidents/month</td></tr>
           <tr><td>IT Ops throughput (fast tier)</td><td>~2,280 incidents/hour</td></tr>
           <tr><td>Deep Research throughput (deep tier)</td><td>~90 reports/hour</td></tr>
@@ -1311,18 +1289,18 @@
       <div style="background:#e8f5e9;border-left:4px solid #4caf50;border-radius:0 12px 12px 0;padding:20px;">
         <h3 style="margin:0 0 8px;font-size:.95rem;color:#2e7d32;">Retrieval Pipeline</h3>
         <ul style="margin:0;padding-left:18px;font-size:.88rem;line-height:1.7;">
-          <li>FAISS HNSW delivers sub-20ms dense search at 12K vectors — well within interactive SLA</li>
-          <li>Cross-encoder reranking (437ms Torch/20) is the bottleneck but critical for quality</li>
-          <li>Full pipeline peaks at 91 q/s at C=4; ONNX backend option can push to ~19 q/s at C=1</li>
+          <li>FAISS HNSW delivers sub-25ms dense search at 12K vectors — well within interactive SLA</li>
+          <li>Cross-encoder reranking (493ms Torch/20) is the bottleneck but critical for quality</li>
+          <li>Full pipeline peaks at 81 q/s at C=16; ONNX backend option can push to ~19 q/s at C=1</li>
           <li>Context packing saves 80–90% of tokens, directly reducing LLM cost per query</li>
         </ul>
       </div>
       <div style="background:#e3f2fd;border-left:4px solid #1976d2;border-radius:0 12px 12px 0;padding:20px;">
         <h3 style="margin:0 0 8px;font-size:.95rem;color:#0d47a1;">E2E Performance</h3>
         <ul style="margin:0;padding-left:18px;font-size:.88rem;line-height:1.7;">
-          <li><strong>Fast tier</strong> (IT Ops ~3.9s, Research ~4.8s): sub-5s for simple queries — interactive SLA</li>
-          <li><strong>Medium tier</strong> (IT Ops ~16.5s, Research ~10.1s): multi-step reasoning in &lt;20s</li>
-          <li><strong>Deep tier</strong> (Research ~45s): comprehensive supervisor synthesis — faster than manual research by hours</li>
+          <li><strong>Fast tier</strong> (IT Ops 3.8s, Research 4.8s): sub-5s for simple queries — interactive SLA</li>
+          <li><strong>Medium tier</strong> (IT Ops 9.1s, Research 7.0s): multi-step reasoning in &lt;10s</li>
+          <li><strong>Deep tier</strong> (Research ~44s): comprehensive supervisor synthesis — faster than manual research by hours</li>
           <li>LLM decode dominates (82–95% of E2E) — upgrade path is clear</li>
         </ul>
       </div>
@@ -1340,8 +1318,8 @@
       <div style="background:#fce4ec;border-left:4px solid #c62828;border-radius:0 12px 12px 0;padding:20px;">
         <h3 style="margin:0 0 8px;font-size:.95rem;color:#b71c1c;">Cost Efficiency</h3>
         <ul style="margin:0;padding-left:18px;font-size:.88rem;line-height:1.7;">
-          <li>$0.000256/query at capacity — ~1,200× cheaper than GPT-4o API</li>
-          <li>Deep-tier Research queries cost $0.015 — negligible for enterprise strategic analysis</li>
+          <li>$0.000257/query at capacity — ~1,200× cheaper than GPT-4o API</li>
+          <li>Deep-tier Research queries cost $0.010 — negligible for enterprise strategic analysis</li>
           <li>Monthly capacity: 1.65M queries at $423/month infra</li>
           <li>Break-even at 68 IT incidents/month — any mid-size enterprise qualifies</li>
         </ul>
@@ -1350,9 +1328,9 @@
 
     <div style="background:#f5f5f5;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;">
       <h3 style="margin:0 0 12px;font-size:.95rem;">Methodology</h3>
-      <p style="font-size:.85rem;color:var(--muted);margin:0 0 8px;">Component benchmarks run on Xeon 6 with 12,160-document IT Ops corpus (FAISS IndexHNSWFlat M=32, efSearch=64). E2E benchmarks invoke LangGraph graphs directly with live LLM inference (Llama-3.1-8B at tp=8 on 8× Arc Pro B60, Qwen2.5-3B on Xeon for classification + entity extraction). LLM times in the node breakdown tables are modelled estimates where E2E hasn't been run; real measurements available after <code>bench_e2e.py</code> runs. Cost model: $423/month total infrastructure.</p>
+      <p style="font-size:.85rem;color:var(--muted);margin:0 0 8px;">Component benchmarks run on Xeon 6 with 12,160-document IT Ops corpus (FAISS IndexHNSWFlat M=32, efSearch=64). E2E latency figures in the tier tables are simulated from the component benchmark timing model (95 tok/s output decode, 45ms TTFT per call). Live E2E runs via <code>bench_e2e.py</code> require running vLLM servers. Cost model: $423/month total infrastructure.</p>
       <p style="font-size:.85rem;color:var(--muted);margin:0;">
-        <strong>Component benchmarks:</strong> <code>HF_HUB_OFFLINE=1 python3 -m evals.bench_components --concurrency 1,4,16,32,64</code><br/>
+        <strong>Component benchmarks:</strong> <code>HF_HUB_OFFLINE=1 python3 -m evals.bench_components --concurrency 1,4,16,32</code><br/>
         <strong>E2E benchmarks:</strong> <code>HF_HUB_OFFLINE=1 python3 -m evals.bench_e2e</code>
       </p>
     </div>

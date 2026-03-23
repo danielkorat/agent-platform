@@ -289,16 +289,17 @@ The demo corpus is 12,160 IT Ops documents (160 runbooks, 9,000 incidents, 3,000
 To rebuild: `HF_HUB_OFFLINE=1 python3 -m connectors.build_large_scale_index`
 
 ### 26. Benchmark harness: evals/bench_components.py
-Component-level benchmarks measuring FAISS, BM25, reranker, full retrieval pipeline, router, and simulated E2E at concurrency 1/4/16/32/64.
-To run: `HF_HUB_OFFLINE=1 python3 -m evals.bench_components --concurrency 1,4,16,32,64`
-Key findings (Xeon 6, 12K corpus):
-- FAISS HNSW: 18ms p50 @ C=1, 51ms p50 @ C=64
-- BM25: 31ms p50 @ C=1
-- Cross-encoder reranker: 563ms p50 torch/20 (was 1,653ms @ 50 cands), 216ms ONNX/10
-- Full retrieval pipeline: 2,244ms p50 @ C=1, peaks at 18.8 q/s @ C=16
-- Router rules: 0.022ms p50, 100% rule coverage on eval set
-- E2E fast tier: 5.4s, deep tier: 23.6–39.4s
-- Monthly capacity at GPU C=8: 1.46M queries, $0.00035/query
+Component-level benchmarks measuring FAISS, BM25, reranker, full retrieval pipeline, router, and simulated E2E at concurrency 1/4/16/32.
+To run: `HF_HUB_OFFLINE=1 python3 -m evals.bench_components --concurrency 1,4,16,32`
+**Skip c=64** — risks GPU engine timeout on XPU (drm_sched_job_timedout).
+Key findings (Xeon 6, 12K corpus, March 2026 post power-cycle):
+- FAISS HNSW: 22ms p50 @ C=1, 49ms p50 @ C=32
+- BM25: 29ms p50 @ C=1
+- Cross-encoder reranker: 493ms p50 torch/20, 729ms p99
+- Full retrieval pipeline: 580ms p50 @ C=1, **81.1 q/s peak @ C=16** (previously C=4 at 91 q/s was with older measurements)
+- Router rules: 0.023ms p50, 100% rule coverage on eval set
+- E2E simulated fast tier: IT Ops 3.8s / DR 4.8s; medium: IT Ops 9.1s / DR 7.0s; deep: DR ~44s
+- Monthly capacity at GPU C=8: 1,648,306 queries, $0.000257/query
 
 ### 27. ONNX export requires `attn_implementation="eager"`
 PyTorch 2.10+ defaults to SDPA attention which traces poorly to ONNX (5× regression).
